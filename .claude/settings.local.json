@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:\\\\Users\\\\paulo\\\\.claude\\\\skills\\\\impeccable\\\\scripts\\\\impeccable.cmd context *)",
+      "PowerShell(& \"C:\\\\Users\\\\paulo\\\\.claude\\\\skills\\\\impeccable\\\\scripts\\\\impeccable.cmd\" context 2>&1)",
+      "PowerShell(npx skills list 2>&1)",
+      "Bash(npx skills *)",
+      "Bash(npm init *)",
+      "Bash(npx playwright *)",
+      "Bash(npm install *)"
+    ]
+  }
+}
