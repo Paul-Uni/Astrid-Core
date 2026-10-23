@@ -53,7 +53,8 @@
       "Bash(curl -sf -L -o icons/linkedin.svg \"https://www.figma.com/api/mcp/asset/151fc66b-3a1c-47d5-b281-69d24122fe6a.svg\")",
       "Bash(curl -sf -L -o icons/github.png \"https://www.figma.com/api/mcp/asset/c078b133-569f-40b3-b593-2eea843c2756.png\")",
       "Bash(curl -sf -L -o icons/discord.png \"https://www.figma.com/api/mcp/asset/0c6e2828-0c8a-4db0-bf24-81eebb447fb7.png\")",
-      "Bash(curl -sf -L -o lock-pixel.svg \"https://www.figma.com/api/mcp/asset/b1d0904b-92c1-4272-ab71-793ee5139124.svg\")"
+      "Bash(curl -sf -L -o lock-pixel.svg \"https://www.figma.com/api/mcp/asset/b1d0904b-92c1-4272-ab71-793ee5139124.svg\")",
+      "Bash(git commit -m 'Bump section scroll-margin-top to 13rem for Nav clearance *)"
     ]
   }
 }
