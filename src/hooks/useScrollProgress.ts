@@ -24,25 +24,35 @@ export function useScrollProgress() {
       ).sort((a, b) => a.offsetTop - b.offsetTop);
 
       if (sections.length > 1) {
-        // Anchor: the vertical line one-third down the viewport (feels right
-        // for "which section am I reading" vs. true center).
-        const anchor = window.scrollY + window.innerHeight * 0.33;
+        // Each section's "landing scrollY" is where the browser scrolls to
+        // when you click `#slug` — section.offsetTop minus scroll-margin-top
+        // from globals.css. Using these as the station boundaries makes the
+        // HUD read exactly depth 0 at page load (scrollY = 0 → Entry start)
+        // and exactly the station's depth after a rail jump (scrollY lands
+        // on that station's landing). Compute scrollMargin at read time so
+        // CTRL+zoom (which scales rem) keeps everything aligned.
+        const rootFont = parseFloat(
+          getComputedStyle(document.documentElement).fontSize,
+        );
+        const scrollMarginPx = 13 * rootFont; // mirrors `scroll-margin-top: 13rem`
+        const landings = sections.map((s) =>
+          Math.max(0, s.offsetTop - scrollMarginPx),
+        );
 
+        const scrollY = window.scrollY;
         let currentIndex = 0;
-        for (let i = sections.length - 1; i >= 0; i--) {
-          if (sections[i]!.offsetTop <= anchor) {
+        for (let i = landings.length - 1; i >= 0; i--) {
+          if (landings[i]! <= scrollY) {
             currentIndex = i;
             break;
           }
         }
-        const nextIndex = Math.min(currentIndex + 1, sections.length - 1);
-        const currentSec = sections[currentIndex]!;
-        const nextSec = sections[nextIndex]!;
-
-        const currentTop = currentSec.offsetTop;
-        const nextTop = nextSec.offsetTop;
-        const span = Math.max(1, nextTop - currentTop);
-        const frac = Math.max(0, Math.min(1, (anchor - currentTop) / span));
+        const nextIndex = Math.min(currentIndex + 1, landings.length - 1);
+        const span = Math.max(1, landings[nextIndex]! - landings[currentIndex]!);
+        const frac = Math.max(
+          0,
+          Math.min(1, (scrollY - landings[currentIndex]!) / span),
+        );
 
         if (Math.abs(frac * 1000 - lastDepth) > 1) {
           writeFromSections(currentIndex, frac);
