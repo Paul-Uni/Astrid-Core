@@ -43,7 +43,17 @@
       "Bash(git push *)",
       "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-2-3-hero.png \"https://www.figma.com/api/mcp/asset/6e3406cf-45d3-42f0-9c2f-602068abb2f2.png\")",
       "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-45-1950-about.png \"https://www.figma.com/api/mcp/asset/ab62d17d-c07f-43e6-ace5-09eef46ae18c.png\")",
-      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/public/scanlines.svg \"https://www.figma.com/api/mcp/asset/287af052-6868-4855-8606-05890222d5d0.svg\")"
+      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/public/scanlines.svg \"https://www.figma.com/api/mcp/asset/287af052-6868-4855-8606-05890222d5d0.svg\")",
+      "Bash(curl -sf -L -o node-46-2933-skills.png \"https://www.figma.com/api/mcp/asset/d3e6cc1f-9191-46ff-afcf-5cd692b1a033.png\")",
+      "Bash(curl -sf -L -o node-47-3936-projects.png \"https://www.figma.com/api/mcp/asset/91c4e262-538c-4897-8ee3-badca26921d7.png\")",
+      "Bash(curl -sf -L -o node-48-4933-background.png \"https://www.figma.com/api/mcp/asset/5a0a5c25-27ca-46ad-8273-ec2e25e3c592.png\")",
+      "Bash(curl -sf -L -o node-49-5916-contact.png \"https://www.figma.com/api/mcp/asset/e2b71010-7931-4120-9fca-4f9da72cac1a.png\")",
+      "Read(//c/c/Users/paulo/local/Astrid_Core/docs/**)",
+      "Bash(mkdir -p icons)",
+      "Bash(curl -sf -L -o icons/linkedin.svg \"https://www.figma.com/api/mcp/asset/151fc66b-3a1c-47d5-b281-69d24122fe6a.svg\")",
+      "Bash(curl -sf -L -o icons/github.png \"https://www.figma.com/api/mcp/asset/c078b133-569f-40b3-b593-2eea843c2756.png\")",
+      "Bash(curl -sf -L -o icons/discord.png \"https://www.figma.com/api/mcp/asset/0c6e2828-0c8a-4db0-bf24-81eebb447fb7.png\")",
+      "Bash(curl -sf -L -o lock-pixel.svg \"https://www.figma.com/api/mcp/asset/b1d0904b-92c1-4272-ab71-793ee5139124.svg\")"
     ]
   }
 }

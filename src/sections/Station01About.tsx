@@ -18,7 +18,8 @@ export function Station01About() {
       <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
         {/* Profile panel — Figma pos (80, 150), width 520 */}
         <GlassPanel
-          className="absolute left-[5rem] top-[9.375rem] flex w-[32.5rem] flex-col gap-5 p-8"
+          className="flex w-[32.5rem] flex-col gap-5 p-8"
+          style={{ position: "absolute", left: "5rem", top: "9.375rem" }}
           aria-labelledby="about-h2"
         >
           <SectionLabel index={1} name="About" />

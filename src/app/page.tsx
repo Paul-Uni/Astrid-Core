@@ -4,6 +4,10 @@ import { Hud } from "@/chrome/Hud";
 import { Section } from "@/sections/Section";
 import { Station00Entry } from "@/sections/Station00Entry";
 import { Station01About } from "@/sections/Station01About";
+import { Station02Skills } from "@/sections/Station02Skills";
+import { Station03Projects } from "@/sections/Station03Projects";
+import { Station04Background } from "@/sections/Station04Background";
+import { Station05Contact } from "@/sections/Station05Contact";
 import { ScrollProgressDriver } from "./ScrollProgressDriver";
 import { STATIONS } from "@/tokens/stations";
 
@@ -25,11 +29,10 @@ export default function Home() {
       <main className="relative">
         <Station00Entry />
         <Station01About />
-        {/* Stations 02–05 are shrunk placeholder shells until Phase E
-            fills them in. Keeps the dead scroll area small for now. */}
-        {STATIONS.slice(2).map((station) => (
-          <Section key={station.id} station={station} heightClass="min-h-[20rem]" />
-        ))}
+        <Station02Skills />
+        <Station03Projects />
+        <Station04Background />
+        <Station05Contact />
       </main>
     </>
   );

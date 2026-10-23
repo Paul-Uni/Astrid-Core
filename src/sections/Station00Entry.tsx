@@ -21,7 +21,8 @@ export function Station00Entry() {
       <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
         {/* Intro panel — left side, Figma pos (88, 168) */}
         <GlassPanel
-          className="absolute left-[5.5rem] top-[10.5rem] flex max-w-[29rem] flex-col gap-7 p-8"
+          className="flex max-w-[29rem] flex-col gap-7 p-8"
+          style={{ position: "absolute", left: "5.5rem", top: "10.5rem" }}
           aria-labelledby="entry-h1"
         >
           <StatusChip>Open to Working Student roles · C# / .NET</StatusChip>

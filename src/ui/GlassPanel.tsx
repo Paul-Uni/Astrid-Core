@@ -24,11 +24,18 @@ export function GlassPanel({
   style,
   ...rest
 }: GlassPanelProps) {
+  // `position: relative` is set via inline style (not className) so a
+  // consumer-provided `style={{ position: 'absolute', … }}` cleanly
+  // overrides it. Otherwise Tailwind's `.relative` rule (defined later in
+  // the base layer than `.absolute`) would win over any `absolute` class
+  // the consumer adds, and the panel would land in flex flow instead of
+  // at its intended coordinates.
   return (
     <div
       {...rest}
-      className={`relative ${className}`}
+      className={className}
       style={{
+        position: "relative",
         background: "var(--panel-bg)",
         border: "var(--panel-border)",
         backdropFilter: blur === "default" ? "var(--panel-blur)" : "blur(0.375rem)",
