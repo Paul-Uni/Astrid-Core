@@ -28,29 +28,30 @@ export const useScrollStore = create<ScrollState>(() => ({
 }));
 
 /**
- * Writes a new scroll state derived from page progress.
- * Called from the rAF reader (useScrollProgress hook) — zoom-agnostic
- * because `progress` is a ratio of the scrolled document, not a px value.
+ * Writes scroll state derived from which DOM section is active and how
+ * far through it we've scrolled.
+ *
+ * Called from the rAF reader (useScrollProgress hook). Honours whatever
+ * heights the sections actually have in the DOM, so jumping to a `#slug`
+ * lights up the matching rail diamond regardless of per-section height.
  */
-export function writeFromProgress(progress: number) {
-  const clamped = Math.max(0, Math.min(1, progress));
+export function writeFromSections(currentIndex: number, frac: number) {
+  const clampedFrac = Math.max(0, Math.min(1, frac));
+  const safeIndex = Math.max(0, Math.min(currentIndex, STATIONS.length - 1));
+  const nextIndex = Math.min(safeIndex + 1, STATIONS.length - 1);
 
-  // Piecewise-linear interpolation across the 6 stations.
-  const scaled = clamped * (STATIONS.length - 1);     // 0..5
-  const stationFloor = Math.min(Math.floor(scaled), STATIONS.length - 2);
-  const frac = scaled - stationFloor;
+  const a = STATIONS[safeIndex]!;
+  const b = STATIONS[nextIndex]!;
 
-  const a = STATIONS[stationFloor]!;
-  const b = STATIONS[stationFloor + 1]!;
-
-  const theta = Math.round(a.theta + (b.theta - a.theta) * frac);
-  const depth = Math.round(a.depth + (b.depth - a.depth) * frac);
-  const stationId = (frac >= 0.5 ? stationFloor + 1 : stationFloor) as StationId;
+  const theta = Math.round(a.theta + (b.theta - a.theta) * clampedFrac);
+  const depth = Math.round(a.depth + (b.depth - a.depth) * clampedFrac);
+  const stationId = (clampedFrac >= 0.5 ? nextIndex : safeIndex) as StationId;
+  const progress = (safeIndex + clampedFrac) / (STATIONS.length - 1);
 
   useScrollStore.setState({
-    progress: clamped,
+    progress,
     station: stationId,
-    stationFrac: frac,
+    stationFrac: clampedFrac,
     theta,
     depth,
   });
