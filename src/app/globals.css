@@ -114,6 +114,13 @@
     scroll-behavior: smooth;
   }
 
+  /* Jump-targets (rail diamonds, nav links, Entry Core) must clear the
+     fixed Nav fade (9.375rem tall). Without this the top of each panel
+     lands behind the Nav after scrolling to its #slug. */
+  section[data-station] {
+    scroll-margin-top: 10rem;
+  }
+
   body {
     min-height: 100svh;
     min-height: 100dvh;
