@@ -3,6 +3,7 @@ import { OrbitRail } from "@/chrome/OrbitRail";
 import { Hud } from "@/chrome/Hud";
 import { Section } from "@/sections/Section";
 import { Station00Entry } from "@/sections/Station00Entry";
+import { Station01About } from "@/sections/Station01About";
 import { ScrollProgressDriver } from "./ScrollProgressDriver";
 import { STATIONS } from "@/tokens/stations";
 
@@ -23,9 +24,11 @@ export default function Home() {
 
       <main className="relative">
         <Station00Entry />
-        {/* Stations 01–05 remain placeholder shells until Phase E. */}
-        {STATIONS.slice(1).map((station) => (
-          <Section key={station.id} station={station} />
+        <Station01About />
+        {/* Stations 02–05 are shrunk placeholder shells until Phase E
+            fills them in. Keeps the dead scroll area small for now. */}
+        {STATIONS.slice(2).map((station) => (
+          <Section key={station.id} station={station} heightClass="min-h-[20rem]" />
         ))}
       </main>
     </>

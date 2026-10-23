@@ -17,8 +17,8 @@ import { STATIONS } from "@/tokens/stations";
 export function Station00Entry() {
   const station = STATIONS[0]!;
   return (
-    <Section station={station} heightClass="min-h-screen">
-      <div className="relative mx-auto h-screen w-full max-w-[90rem]">
+    <Section station={station}>
+      <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
         {/* Intro panel — left side, Figma pos (88, 168) */}
         <GlassPanel
           className="absolute left-[5.5rem] top-[10.5rem] flex max-w-[29rem] flex-col gap-7 p-8"

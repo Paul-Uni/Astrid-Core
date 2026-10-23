@@ -41,7 +41,9 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-2-3-hero.png \"https://www.figma.com/api/mcp/asset/6e3406cf-45d3-42f0-9c2f-602068abb2f2.png\")"
+      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-2-3-hero.png \"https://www.figma.com/api/mcp/asset/6e3406cf-45d3-42f0-9c2f-602068abb2f2.png\")",
+      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-45-1950-about.png \"https://www.figma.com/api/mcp/asset/ab62d17d-c07f-43e6-ace5-09eef46ae18c.png\")",
+      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/public/scanlines.svg \"https://www.figma.com/api/mcp/asset/287af052-6868-4855-8606-05890222d5d0.svg\")"
     ]
   }
 }
