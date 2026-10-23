@@ -38,7 +38,10 @@
       "Bash(git clean *)",
       "Bash(node *)",
       "Bash(npm view *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(curl -sf -L -o /c/Users/paulo/local/Astrid_Core/docs/figma-refs/node-2-3-hero.png \"https://www.figma.com/api/mcp/asset/6e3406cf-45d3-42f0-9c2f-602068abb2f2.png\")"
     ]
   }
 }
