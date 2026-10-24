@@ -45,7 +45,7 @@ export function Station02Skills() {
   const station = STATIONS[2]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Header panel — Figma pos (96, 132), width 420 */}
         <GlassPanel
           className="flex w-[26.25rem] flex-col gap-4 p-8"

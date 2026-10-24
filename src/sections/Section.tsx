@@ -12,11 +12,12 @@ type SectionProps = {
 };
 
 /**
- * Shared station shell. Each station is a scroll target whose height
- * scales with the typographic scale (rem), not the viewport (vh), so
- * CTRL+zoom never opens a gap between sections.
+ * Shared station shell. Each station is one Figma frame: 1440 × 900
+ * (56.25rem tall), so a rail jump lands with the viewport showing exactly
+ * that frame. Panel positions inside already carry the nav clearance.
+ * Height is rem, not vh, so CTRL+zoom never opens a gap between sections.
  */
-export function Section({ station, children, heightClass = "min-h-[52rem]" }: SectionProps) {
+export function Section({ station, children, heightClass = "min-h-[56.25rem]" }: SectionProps) {
   return (
     <section
       id={station.slug}

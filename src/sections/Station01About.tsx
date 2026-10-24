@@ -15,7 +15,7 @@ export function Station01About() {
   const station = STATIONS[1]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Profile panel — Figma pos (80, 150), width 520 */}
         <GlassPanel
           className="flex w-[32.5rem] flex-col gap-5 p-8"

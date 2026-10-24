@@ -18,7 +18,7 @@ export function Station00Entry() {
   const station = STATIONS[0]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[52rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Intro panel — left side, Figma pos (88, 168) */}
         <GlassPanel
           className="flex max-w-[29rem] flex-col gap-7 p-8"

@@ -15,12 +15,13 @@ import type { Palette } from "./palette";
 import { range, seededRandom } from "./random";
 import { RENDER_ORDER, STREAM, toWorldY } from "./streamSpec";
 
-type Cube = { origin: [number, number, number]; seed: [number, number, number, number] };
+type Cube = { origin: [number, number, number]; seed: [number, number, number, number]; orbit: number };
 
 /**
  * Small cubes in front of and behind the stream (DESIGN.md "Fragments"):
  * drift up ~4–10 px/s and a little outward, tumble one turn per 20–40 s,
- * fade near the end of each life and respawn near the beam.
+ * orbit the beam counter-clockwise (one turn per 60–120 s), fade near the
+ * end of each life and respawn near the beam.
  */
 function makeCubes(count: number): Cube[] {
   const rng = seededRandom(4600);
@@ -33,6 +34,7 @@ function makeCubes(count: number): Cube[] {
       rng(),
       range(rng, 9, 17),
     ],
+    orbit: (Math.PI * 2) / range(rng, 60, 120),
   }));
 }
 
@@ -45,6 +47,7 @@ function mergeCubes(base: BufferGeometry, cubes: Cube[]) {
   const nrm = new Float32Array(cubes.length * n * 3);
   const origin = new Float32Array(cubes.length * n * 3);
   const seed = new Float32Array(cubes.length * n * 4);
+  const orbit = new Float32Array(cubes.length * n);
   cubes.forEach((cube, c) => {
     for (let v = 0; v < n; v++) {
       const i = c * n + v;
@@ -52,6 +55,7 @@ function mergeCubes(base: BufferGeometry, cubes: Cube[]) {
       nrm.set(baseNrm ? [baseNrm.getX(v), baseNrm.getY(v), baseNrm.getZ(v)] : [0, 1, 0], i * 3);
       origin.set(cube.origin, i * 3);
       seed.set(cube.seed, i * 4);
+      orbit[i] = cube.orbit;
     }
   });
   const g = new BufferGeometry();
@@ -59,6 +63,7 @@ function mergeCubes(base: BufferGeometry, cubes: Cube[]) {
   g.setAttribute("normal", new Float32BufferAttribute(nrm, 3));
   g.setAttribute("aOrigin", new Float32BufferAttribute(origin, 3));
   g.setAttribute("aSeed", new Float32BufferAttribute(seed, 4));
+  g.setAttribute("aOrbit", new Float32BufferAttribute(orbit, 1));
   return g;
 }
 

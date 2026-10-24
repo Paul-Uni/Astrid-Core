@@ -1,17 +1,25 @@
 import { test, expect } from "@playwright/test";
 
-test("rail jump leaves nav-clearance for section top", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: /Jump to station.*about/i }).click();
-  await page.waitForTimeout(500);
+/**
+ * After a rail jump the viewport shows the station's Figma frame, and no
+ * panel sits under the fixed nav bar (≥16px clear of its bottom edge).
+ */
+for (const slug of ["about", "skills", "projects", "background", "contact"]) {
+  test(`rail jump to ${slug}: panels clear the nav`, async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: new RegExp(`Jump to station.*${slug}`, "i") }).click();
+    await page.waitForTimeout(1200);
 
-  const sectionTop = await page.evaluate(() => {
-    const el = document.querySelector("#about") as HTMLElement;
-    return el.getBoundingClientRect().top;
+    const { navBottom, minPanelTop } = await page.evaluate((s) => {
+      const nav = document.querySelector("nav[aria-label='Primary']")!.getBoundingClientRect();
+      const panels = Array.from(
+        document.querySelectorAll<HTMLElement>(`#${s} > div > *`),
+      )
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.width > 40 && r.height > 20 && r.width < 1400);
+      return { navBottom: nav.bottom, minPanelTop: Math.min(...panels.map((r) => r.top)) };
+    }, slug);
+
+    expect(minPanelTop).toBeGreaterThanOrEqual(navBottom + 16);
   });
-
-  // 10rem = 160px nominal — section should start at or below that line.
-  expect(sectionTop).toBeGreaterThanOrEqual(150);
-
-  await page.screenshot({ path: "test-results/nav-clearance-about.png", fullPage: false });
-});
+}

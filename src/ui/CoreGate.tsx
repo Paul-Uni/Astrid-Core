@@ -10,7 +10,8 @@ import { ButtonCore } from "./ButtonCore";
 export function CoreGate({ href = "#login" }: { href?: string }) {
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative size-[6.5rem]">
+      {/* data-core-anchor: the WebGL stream lines its emitter up under this lock. */}
+      <div data-core-anchor className="relative size-[6.5rem]">
         {/* Outer dashed ring */}
         <span
           aria-hidden

@@ -22,6 +22,8 @@
   --glow-magenta: 0 0 1.5rem color-mix(in srgb, var(--color-magenta-core) 60%, transparent);
   --glow-magenta-hover: 0 0 2.25rem color-mix(in srgb, var(--color-magenta-core) 75%, transparent);
   --glow-magenta-gate: 0 0 1.75rem color-mix(in srgb, var(--color-magenta-core) 55%, transparent);
+  /* Button/Core fill: magenta-core deepened toward void so ice text passes AA (≈4.9:1). */
+  --cta-fill: color-mix(in srgb, var(--color-magenta-core) 80%, var(--color-void));
   --panel-bg: color-mix(in srgb, var(--color-void) 62%, transparent);
   --panel-border: 1px solid color-mix(in srgb, var(--color-vex-cyan) 22%, transparent);
   --panel-blur: blur(1.125rem);
@@ -112,11 +114,10 @@
     scroll-behavior: smooth;
   }
 
-  /* Jump-targets must clear the fixed Nav fade (9.5rem tall) with room
-     to breathe. 13rem = 9.5rem Nav + 3.5rem (`--gutter-edge`) clearance,
-     so panels land cleanly below the fade rather than right against it. */
+  /* Jump targets land on the section top: each section is a full Figma
+     frame whose panel positions already clear the fixed Nav. */
   section[data-station] {
-    scroll-margin-top: 13rem;
+    scroll-margin-top: 0;
   }
 
   body {

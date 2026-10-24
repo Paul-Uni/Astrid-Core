@@ -35,7 +35,7 @@ const ENTRIES: readonly Entry[] = [
     title: "Team project: CAM",
     org: "Carbyte / SE Labs · Scrum",
     body: "AI backend in C#, flowchart editor in React/TypeScript.",
-    pos: { left: "52.5625rem", top: "24.75rem" },
+    pos: { left: "51.8125rem", top: "24.75rem" },
   },
   {
     dateRange: "10/2021 — 07/2024",
@@ -60,8 +60,8 @@ const ENTRIES: readonly Entry[] = [
 export function Station04Background() {
   const station = STATIONS[4]!;
   return (
-    <Section station={station} heightClass="min-h-[62rem]">
-      <div className="relative mx-auto h-full min-h-[62rem] w-full max-w-[90rem]">
+    <Section station={station}>
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Header — Figma (72, 128), width 440 */}
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-7"

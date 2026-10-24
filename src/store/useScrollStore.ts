@@ -18,6 +18,9 @@ export type ScrollState = {
    *  useFrame so the scene never re-renders React per scroll frame. */
   thetaExact: number;
   depthExact: number;
+  /** Stream px (Figma) per px of page scroll. Chosen so the stream's emitter
+   *  lands under the Core Gate lock at the end of the page (see useScrollProgress). */
+  streamScale: number;
 };
 
 const DEPTH_MAX = STATIONS[STATIONS.length - 1]!.depth;
@@ -31,6 +34,7 @@ export const useScrollStore = create<ScrollState>(() => ({
   depth: 0,
   thetaExact: 0,
   depthExact: 0,
+  streamScale: 1,
 }));
 
 /**

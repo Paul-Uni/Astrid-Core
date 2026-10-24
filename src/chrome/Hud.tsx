@@ -34,7 +34,7 @@ export function Hud() {
           "↓ SCROLL TO ORBIT"
         )}
       </span>
-      <span aria-hidden className="font-mono text-mono-data text-ice/60">
+      <span aria-hidden className="font-mono text-mono-data text-ice/75">
         {`cam.θ ${theta.toString().padStart(3, "0")}° · depth ${depth
           .toString()
           .padStart(4, "0")} · core: astrid`}

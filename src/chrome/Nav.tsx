@@ -11,7 +11,7 @@ export function Nav() {
       />
       <nav
         aria-label="Primary"
-        className="pointer-events-auto relative mx-auto flex max-w-[90rem] items-center justify-between px-30 pt-8 max-md:px-5 max-md:pt-5"
+        className="pointer-events-auto relative flex items-center justify-between px-14 pt-8 max-md:px-5 max-md:pt-5"
       >
         <Link
           href="/"

@@ -20,8 +20,12 @@ export const MOBILE_BREAKPOINT = 768;
 export const STREAM = {
   height: 4600,
   beamWidth: 88,
-  /** Rings are drawn as ellipses with height/width ≈ 0.138 → camera pitch. */
-  ringAspect: 0.138,
+  /**
+   * Ring ellipse ratio (height/width) at the screen center. Figma draws 0.138;
+   * References/"reference to beam angle" tilts the stream toward the camera,
+   * so rings open from ≈0.15 at the top of the screen to ≈0.29 at the bottom.
+   */
+  ringAspect: 0.22,
   light: {
     source: { cy: -30, w: 220, h: 160 },
     halo: { cy: -40, w: 560, h: 320 },
@@ -33,7 +37,11 @@ export const STREAM = {
 /** Draw order: sky (−1) → back half of rings/cubes → beam and light → front half. */
 export const RENDER_ORDER = { back: 1, beam: 2, front: 3 } as const;
 
-/** Camera pitch (radians) that reproduces the Figma ring ellipses. */
+/**
+ * Camera pitch (radians) that reproduces the ring ellipses. With the long
+ * lens, looking down this steeply reads the same as tilting the stream
+ * toward the camera. Vertical distances on screen shrink by cos(pitch).
+ */
 export const CAMERA_PITCH = Math.asin(STREAM.ringAspect);
 
 /**

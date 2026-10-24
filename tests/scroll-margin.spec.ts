@@ -1,11 +1,10 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Verify the actual scrollY after a hash jump matches
- * section.offsetTop - 13rem (= 208px). If scroll-margin-top is NOT being
- * applied, scrollY will equal section.offsetTop exactly.
+ * Each section is a full 900px Figma frame, so a hash jump must land with
+ * the section top exactly at the viewport top (scroll-margin-top: 0).
  */
-test("scroll-margin-top is actually applied on hash jumps", async ({ page }) => {
+test("hash jumps land exactly on the section top", async ({ page }) => {
   await page.goto("/");
 
   // Inspect the computed style of the <section> to prove the rule is live
@@ -14,7 +13,7 @@ test("scroll-margin-top is actually applied on hash jumps", async ({ page }) => 
     return getComputedStyle(el).scrollMarginTop;
   });
   console.log("computed scroll-margin-top:", computedMargin);
-  expect(computedMargin).toBe("208px");
+  expect(computedMargin).toBe("0px");
 
   // Click rail link, let smooth-scroll settle, then compare scrollY to offsetTop
   await page.getByRole("link", { name: /Jump to station.*about/i }).click();
@@ -28,9 +27,8 @@ test("scroll-margin-top is actually applied on hash jumps", async ({ page }) => 
       sectionRectTop: el.getBoundingClientRect().top,
     };
   });
-  console.log({ scrollY, offsetTop, sectionRectTop, expectedScrollY: offsetTop - 208 });
+  console.log({ scrollY, offsetTop, sectionRectTop, expectedScrollY: offsetTop });
 
-  // The rule is 13rem = 208px.
-  expect(scrollY).toBe(offsetTop - 208);
-  expect(Math.round(sectionRectTop)).toBe(208);
+  expect(scrollY).toBe(offsetTop);
+  expect(Math.round(sectionRectTop)).toBe(0);
 });

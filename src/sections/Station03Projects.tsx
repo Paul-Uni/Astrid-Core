@@ -14,7 +14,7 @@ export function Station03Projects() {
   const station = STATIONS[3]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[56rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Header — Figma (80, 138), width 470 */}
         <GlassPanel
           className="flex w-[29.375rem] flex-col gap-3 p-7"
@@ -87,10 +87,11 @@ export function Station03Projects() {
           </FooterLink>
         </GlassPanel>
 
-        {/* CAM — right lower, Figma (904, 416), width 440 */}
+        {/* CAM — right lower, Figma (904, 416), width 440. Moved to x 808 so it
+            ends at 1248, ≥16px clear of the active rail label (DESIGN.md). */}
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-6"
-          style={{ position: "absolute", left: "56.5rem", top: "26rem" }}
+          style={{ position: "absolute", left: "50.5rem", top: "26rem" }}
           aria-labelledby="cam-h3"
         >
           <MetaLine>{"// NODE 02 · TEAM PROJECT · 2025"}</MetaLine>

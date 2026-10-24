@@ -1,7 +1,35 @@
 "use client";
 
 import { useEffect } from "react";
-import { writeFromSections } from "@/store/useScrollStore";
+import { useScrollStore, writeFromSections } from "@/store/useScrollStore";
+import { CAMERA_PITCH, MOBILE_BREAKPOINT, MOBILE_SCALE, STREAM } from "@/scene/streamSpec";
+
+/**
+ * Stream speed relative to the page: the camera depth is scrollY × scale, so
+ * the stream moves in lockstep with the content (no lag, constant rate).
+ * The scale is chosen so that at the end of the page the emitter at the
+ * bottom of the stream sits exactly under the Core Gate lock.
+ */
+function measureStreamScale(contactLanding: number) {
+  const anchor = document.querySelector<HTMLElement>("[data-core-anchor]");
+  if (!anchor) return;
+  const rect = anchor.getBoundingClientRect();
+  const anchorDocY = rect.top + window.scrollY + rect.height / 2;
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  const end = Math.min(contactLanding, maxScroll);
+  if (end <= 0) return;
+  const scale = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches
+    ? MOBILE_SCALE
+    : 1;
+  // At scrollY = end the emitter must sit at the anchor's viewport y.
+  // The camera looks at the viewport center; stream distances from there
+  // appear × scale × cos(pitch) on screen.
+  const half = window.innerHeight / 2;
+  const anchorViewY = anchorDocY - end;
+  const s =
+    (STREAM.emitter.cy - (anchorViewY - half) / (scale * Math.cos(CAMERA_PITCH)) - half / scale) / end;
+  useScrollStore.setState({ streamScale: Math.min(1.6, Math.max(0.4, s)) });
+}
 
 /**
  * Drives the scroll store (camera, HUD, orbit rail) from the page scroll.
@@ -30,6 +58,7 @@ export function useScrollProgress() {
         const margin = parseFloat(getComputedStyle(s).scrollMarginTop) || 0;
         return Math.max(0, s.offsetTop - margin);
       });
+      if (landings.length) measureStreamScale(landings[landings.length - 1]!);
     };
 
     const update = () => {

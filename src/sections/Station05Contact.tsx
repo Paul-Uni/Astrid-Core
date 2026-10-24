@@ -14,8 +14,8 @@ import { STATIONS } from "@/tokens/stations";
 export function Station05Contact() {
   const station = STATIONS[5]!;
   return (
-    <Section station={station} heightClass="min-h-[56rem]">
-      <div className="relative mx-auto h-full min-h-[56rem] w-full max-w-[90rem]">
+    <Section station={station}>
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
         {/* Contact orbit — dashed cyan ellipse around the Core Gate */}
         <img
           aria-hidden

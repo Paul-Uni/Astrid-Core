@@ -3,6 +3,10 @@
 Source: Figma file `nDASzxVT0RalUB1S45Oq43` (https://www.figma.com/design/nDASzxVT0RalUB1S45Oq43), state of 2026-10-20.
 Tokens below are taken from the Figma variables and text styles. If Figma and this file disagree, update this file from Figma (`get_variable_defs`), then fix the code.
 
+## Workflow status
+
+**Impeccable loop paused (Paul, 2026-10-24).** Do not run `/impeccable` commands (critique, polish, audit, document) or treat their findings as blocking until Paul resumes it. The last critique snapshot stays in `.impeccable/critique/` for when the loop resumes. Visual verification with Playwright screenshots continues as usual.
+
 ## Concept
 
 All site copy is in **English**.
@@ -77,8 +81,8 @@ Three families with fixed jobs: Pixelify = titles, buttons, logo; Space Grotesk 
 Spacing scale (px): `4 8 12 16 24 32 40 56 80 120`. Values used in Figma outside the scale (10, 14, 18, 22, 28) snap to the nearest step in code.
 
 Desktop grid (1440 frame):
-- **Content gutter: 120px** left and right. Nav, hero text, HUD line align to it. Panels with 32px padding sit at 88px so their text lands on 120.
-- **Edge gutter: 56px** for elements pinned to the viewport edge (orbit rail, telemetry panel).
+- **Content gutter: 120px** left and right. Hero text aligns to it. Panels with 32px padding sit at 88px so their text lands on 120.
+- **Edge gutter: 56px** for elements pinned to the viewport edge (nav, orbit rail, HUD line, telemetry panel). The nav sits on the edge gutter and spans the full viewport width, so its links stay out toward the screen edges instead of reaching into the middle (Paul, 2026-10-24).
 - The stream is centered (x = 720). Content panels sit left/right of it, never on top of the beam.
 
 Radius: `0` everywhere. Hard edges are part of the look.
@@ -91,6 +95,7 @@ Organic offsets: content panels inside a section are deliberately **not** on one
 | --- | --- | --- |
 | `--glow-cyan` | `0 0 6px rgb(111 242 230 / 0.45)` | Stream lines, status dot |
 | `--glow-magenta` | `0 0 24px rgb(226 51 127 / 0.6)` | Button/Core (hover: 36px) |
+| `--cta-fill` | magenta-core 80% + void 20% | Button/Core fill (AA contrast for ice text) |
 | `--panel-bg` | void at 0.62 | Glass panels |
 | `--panel-border` | 1px vex-cyan at 0.22 | Glass panels |
 | `--panel-blur` | `backdrop-filter: blur(18px)` | Glass panels |
@@ -101,11 +106,11 @@ Glass panels carry 14px cyan corner brackets (2px stroke) on all four corners.
 
 | Component | Spec |
 | --- | --- |
-| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right, 32px gap, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
+| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right, on the 56px edge gutter across the full viewport width, 32px gap, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
 | Nav/Link | Mono/Label, ice at 0.85, padding 8/4 |
 | Nav/Box (Login) | Pixel/Label, dusk-pink text, 1px magenta border at 0.9, magenta fill at 0.12, padding 8/14 |
 | Button/Ghost | "View projects". Pixel/Label, vex-cyan text, 1px vex-cyan border (0.8), fill vex-cyan 0.06, padding 16/24 |
-| Button/Core | `ENTER CORE →`. Solid: Pixel/Label, ice text, magenta-core fill, `--glow-magenta`, padding 16/24 |
+| Button/Core | `ENTER CORE →`. Solid: Pixel/Label, ice text, `--cta-fill` (magenta-core mixed 80/20 with void, so ice text passes AA at ≈4.9:1; pure magenta-core gives 3.5:1), `--glow-magenta`, padding 16/24 |
 | Status chip | Mono/Data, 8px glowing cyan dot, fill cyan 0.08, border cyan 0.4, padding 8/12–14 |
 | Glass panel | `--panel-*` tokens, padding 32, corner brackets |
 | Orbit Rail | Right edge (56px gutter), items right-aligned, 22px gap. `Orbit Rail/Item` has `State=Active|Inactive`: 8px rotated square (active: filled cyan; inactive: outline at 0.7) + Mono/Data label. **Idle: all squares visible, only the current station's label shown** (e.g. `04 BACKGROUND ◆`), so content has room. Content panels keep ≥ 16px clear of that active label. Hovering the rail (fine pointers) or focusing it with the keyboard pops all labels in (opacity, 160ms ease-out) on a glass backdrop (void 0.72, cyan border 0.22, blur 18), so they stay readable over content; reference frame `Orbit Rail · hover state (reference)` in Components. Labels: 00 ENTRY · 01 ABOUT · 02 SKILLS · 03 PROJECTS · 04 BACKGROUND · 05 CONTACT. Each square needs an aria-label with its section name |
@@ -141,14 +146,15 @@ Every station frame repeats the shell: sky gradient, glows, the stream instance 
 
 Built as a WebGL scene from the spec in `Stream/Full` (`14:21`):
 - **Beam:** constant-width cylinder (≈ 88px), soft cyan body, white core line, fine dashed vertical data lines, small randomly scattered dashes and bits. No horizontal rows of particles in the beam, no long vertical streaks.
-- **Rings:** perfectly level (no tilt, no offset), constant overall size along the height. Five types, mixed randomly, 1–3 nested per level:
+- **Rings:** perfectly level relative to the stream (no individual tilt, no offset), constant overall size along the height. Five types, mixed randomly, 1–3 nested per level:
   1. small, thin, 3–4 long segments
   2. small, thick, many tiny blocks + thin inner line
   3. medium, thin, nearly transparent, many fine elements + hairline ticks
   4. medium, thick blocks with machinery chunks, tick band, occasional magenta segment
   5. large, 1–3 fine lines around the stream (may pass behind panels)
+- **Viewing angle:** the stream is tilted toward the camera (reference: `References/reference to beam angle..png`). Rings open up toward the bottom of the screen: ellipse ratio ≈0.15 at the top, ≈0.22 at the center, ≈0.29 at the bottom. Figma's flat 0.138 is superseded. In code this is a 12.7° camera pitch with a long (8°) lens.
 - **Spacing:** clusters of 2–3 tightly stacked levels, then a gap.
-- **Depth:** the back half of each ring is dimmed, the front half bright; the beam sits between them.
+- **Depth:** brightness fades continuously around each ring, dim at the back and bright at the front (no hard switch at the sides); the beam sits between the back and front halves.
 - **Fragments:** small wireframe cubes only (no large bodies), in front of and behind the stream, drifting outward with height.
 - **Top:** white light source with cyan halo and light shaft. **Bottom:** emitter disc with ripples and radial spokes on a cyan iso floor grid.
 - Bloom: in Figma faked with a blurred duplicate; in code use a real bloom pass.
@@ -168,7 +174,7 @@ The stream is never fully still, but it moves slowly enough to read as atmospher
 | Ring type 5 (large, fine outer rings) | ~90s per turn, the slowest |
 | Direction | Each ring gets a random direction; within a cluster, neighbouring rings alternate where possible so they visibly counter-rotate |
 | Variation | Each ring's speed is its type's value ±20% (seeded random), so no two rings move in lockstep |
-| Fragments (wireframe cubes) | Drift slowly upward (~4–10 px/s, varied) and outward a little, tumble on all axes (~one turn per 20–40s), fade out near the top/edges and respawn near the beam. Cubes in front of the stream move slightly faster than those behind (parallax) |
+| Fragments (wireframe cubes) | Drift slowly upward (~4–10 px/s, varied) and outward a little, orbit the beam counter-clockwise seen from above (~one turn per 60–120s, so front cubes cross the beam left → right in front of it and back cubes right → left behind it), tumble on all axes (~one turn per 20–40s), fade out near the top/edges and respawn near the beam. Front cubes are opaque |
 | Beam particles | As in the Figma prototype: three layers, 75 / 112.5 / 150 px/s upward |
 | Easing | All ambient motion is linear and continuous, no easing, no pulsing |
 | Performance | Instanced meshes for blocks and cubes, one draw call per ring type where possible; pause the render loop when the tab is hidden or the canvas is off-screen |

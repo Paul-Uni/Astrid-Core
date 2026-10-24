@@ -256,7 +256,10 @@ export function createRingMaterial(pass: "back" | "front", solid: boolean) {
         if ((facing >= 0.0) != (uFront > 0.5)) discard;
         // Top faces lit, side faces in shade (cyan → cyan-shade).
         float shade = vNy > 0.5 ? 1.0 : 0.55;
-        float dim = uFront > 0.5 ? 1.0 : 0.38;
+        // Brightness fades continuously around the ring (back dim, front bright).
+        // The pass only decides draw order; a hard switch here reads as the
+        // ring entering a surface at its sides.
+        float dim = mix(0.38, 1.0, smoothstep(-0.7, 0.7, facing));
         gl_FragColor = vec4(vColor * shade, vAlpha * dim);
         #include <colorspace_fragment>
       }
@@ -268,6 +271,7 @@ export function createRingMaterial(pass: "back" | "front", solid: boolean) {
 const FRAGMENT_VERTEX = /* glsl */ `
   attribute vec3 aOrigin; // radius, angle, y (world)
   attribute vec4 aSeed;   // rise px/s, tumble rad/s, phase 0..1, size px
+  attribute float aOrbit; // orbit speed around the beam, rad/s
   uniform float uTime;
   varying float vAlpha;
   varying float vNy;
@@ -280,7 +284,10 @@ const FRAGMENT_VERTEX = /* glsl */ `
   void main() {
     float life = fract(aSeed.z + uTime * aSeed.x / RISE_PX);
     float r = aOrigin.x + life * OUTWARD;
-    vec3 center = vec3(cos(aOrigin.y) * r, aOrigin.z + life * RISE_PX / 100.0, sin(aOrigin.y) * r);
+    // Counter-clockwise seen from above: front cubes cross the beam left → right
+    // in front of it, back cubes right → left behind it, so depth reads clearly.
+    float angle = aOrigin.y - uTime * aOrbit;
+    vec3 center = vec3(cos(angle) * r, aOrigin.z + life * RISE_PX / 100.0, sin(angle) * r);
     float t = uTime * aSeed.y + aSeed.z * 6.2831;
     mat3 rot = rotX(t) * rotY(t * 0.73) * rotZ(t * 0.41);
     vec3 p = rot * (position * aSeed.w / 100.0) + center;
@@ -322,9 +329,10 @@ export function createFragmentMaterial(
       void main() {
         float facing = dot(normalize(vCenter.xz + 1e-5), normalize(uCamPos.xz + 1e-5));
         if ((facing >= 0.0) != (uFront > 0.5)) discard;
-        float dim = uFront > 0.5 ? 1.0 : 0.55;
+        float dim = mix(0.55, 1.0, smoothstep(-0.7, 0.7, facing));
         vec3 c = uEdges > 0.5 ? uEdge : mix(uSide, uTop, smoothstep(0.3, 0.8, vNy));
-        float a = (uEdges > 0.5 ? 0.9 : 0.85) * vAlpha * dim;
+        // Front cubes are opaque so the beam never shows through them.
+        float a = mix(uEdges > 0.5 ? 0.9 : 0.85, 1.0, step(0.0, facing)) * vAlpha * dim;
         gl_FragColor = vec4(c, a);
         #include <colorspace_fragment>
       }
