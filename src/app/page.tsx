@@ -9,17 +9,19 @@ import { Station03Projects } from "@/sections/Station03Projects";
 import { Station04Background } from "@/sections/Station04Background";
 import { Station05Contact } from "@/sections/Station05Contact";
 import { ScrollProgressDriver } from "./ScrollProgressDriver";
+import { StageLoader } from "@/scene/StageLoader";
 import { STATIONS } from "@/tokens/stations";
 
 export default function Home() {
   return (
     <>
-      {/* Scene placeholder: Phase A/B ship the sky gradient.
-          The WebGL <Stage /> replaces this element in Phase C. */}
+      {/* CSS sky: shows before the WebGL stage loads and whenever WebGL is
+          unavailable. The stage paints over it once ready. */}
       <div
         aria-hidden
         className="fixed inset-0 -z-10 sky-gradient"
       />
+      <StageLoader />
 
       <ScrollProgressDriver />
       <Nav />
