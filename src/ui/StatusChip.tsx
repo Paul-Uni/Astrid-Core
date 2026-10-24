@@ -18,12 +18,7 @@ type StatusChipProps = {
 export function StatusChip({ children }: StatusChipProps) {
   return (
     <span
-      className="inline-flex items-center gap-2.5 py-2 pl-3 pr-3.5 font-mono text-mono-data uppercase"
-      style={{
-        color: "var(--color-vex-cyan)",
-        backgroundColor: "rgb(111 242 230 / 0.08)",
-        border: "1px solid rgb(111 242 230 / 0.4)",
-      }}
+      className="inline-flex items-center gap-2.5 border border-vex-cyan/40 bg-vex-cyan/8 py-2 pl-3 pr-3.5 font-mono text-mono-data uppercase text-vex-cyan"
     >
       <span
         aria-hidden

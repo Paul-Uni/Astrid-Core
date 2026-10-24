@@ -23,12 +23,10 @@ export function OrbitRail() {
       {/* Glass backdrop appears on hover/focus-within (desktop only) */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10 scale-x-0 opacity-0 transition-[opacity,transform] duration-[160ms] ease-[var(--ease-out)] group-hover:scale-x-100 group-hover:opacity-100 group-focus-within:scale-x-100 group-focus-within:opacity-100 motion-reduce:transition-none max-md:hidden"
+        className="absolute inset-0 -z-10 scale-x-0 opacity-0 transition-[opacity,transform] duration-[160ms] ease-[var(--ease-out)] group-hover:scale-x-100 group-hover:opacity-100 group-focus-within:scale-x-100 group-focus-within:opacity-100 motion-reduce:transition-none max-md:hidden border border-vex-cyan/22 bg-void/72"
         style={{
-          background: "rgb(7 10 31 / 0.72)",
-          border: "1px solid rgb(111 242 230 / 0.22)",
-          backdropFilter: "blur(1.125rem)",
-          WebkitBackdropFilter: "blur(1.125rem)",
+          backdropFilter: "var(--panel-blur)",
+          WebkitBackdropFilter: "var(--panel-blur)",
           transformOrigin: "right",
         }}
       />
@@ -57,12 +55,12 @@ export function OrbitRail() {
                 </span>
                 <span
                   aria-hidden
-                  className="block size-2 rotate-45 transition-colors duration-[var(--dur-hover)]"
-                  style={{
-                    backgroundColor: isActive ? "var(--color-vex-cyan)" : "transparent",
-                    border: `1px solid rgb(111 242 230 / ${isActive ? 1 : 0.7})`,
-                    boxShadow: isActive ? "var(--glow-cyan)" : "none",
-                  }}
+                  className={
+                    "block size-2 rotate-45 border transition-colors duration-[var(--dur-hover)] " +
+                    (isActive
+                      ? "border-vex-cyan bg-vex-cyan shadow-[var(--glow-cyan)]"
+                      : "border-vex-cyan/70 bg-transparent")
+                  }
                 />
               </a>
             </li>

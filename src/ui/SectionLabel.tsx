@@ -14,8 +14,7 @@ export function SectionLabel({ index, name }: SectionLabelProps) {
   const padded = index.toString().padStart(2, "0");
   return (
     <p
-      className="font-mono text-mono-label uppercase"
-      style={{ color: "rgb(111 242 230 / 0.9)" }}
+      className="font-mono text-mono-label uppercase text-vex-cyan/90"
     >
       {`// ${padded} — ${name.toUpperCase()}`}
     </p>

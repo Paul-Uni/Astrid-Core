@@ -4,66 +4,73 @@ import { useEffect } from "react";
 import { writeFromSections } from "@/store/useScrollStore";
 
 /**
- * Single rAF reader that drives the whole app's camera + HUD + orbit rail.
+ * Drives the scroll store (camera, HUD, orbit rail) from the page scroll.
  *
- * Reads real section bounding rects from the DOM each frame rather than a
- * flat `scrollY / scrollHeight` ratio. That matters because stations have
- * different natural heights (hero and about full-size, 02–05 placeholders
- * shrunk until Phase E): a ratio-based calculation would land on the wrong
- * station after jumping to a specific `#slug`. The section-based read keeps
- * active state in sync with what the user is actually looking at.
+ * Station boundaries are each section's "landing scrollY": the position the
+ * browser scrolls to on a `#slug` jump (offsetTop minus scroll-margin-top).
+ * That way the HUD reads depth 0 at load and exactly a station's depth after
+ * a rail jump.
+ *
+ * Landings are measured only when layout can change (resize, content size
+ * change, fonts loaded). Scroll events just do a cheap lookup, batched to
+ * one update per frame. Nothing runs while the page is idle.
  */
 export function useScrollProgress() {
   useEffect(() => {
+    let landings: number[] = [];
     let raf = 0;
-    let lastDepth = -1;
 
-    const tick = () => {
+    const measure = () => {
       const sections = Array.from(
         document.querySelectorAll<HTMLElement>("[data-station]"),
       ).sort((a, b) => a.offsetTop - b.offsetTop);
-
-      if (sections.length > 1) {
-        // Each section's "landing scrollY" is where the browser scrolls to
-        // when you click `#slug` — section.offsetTop minus scroll-margin-top
-        // from globals.css. Using these as the station boundaries makes the
-        // HUD read exactly depth 0 at page load (scrollY = 0 → Entry start)
-        // and exactly the station's depth after a rail jump (scrollY lands
-        // on that station's landing). Compute scrollMargin at read time so
-        // CTRL+zoom (which scales rem) keeps everything aligned.
-        const rootFont = parseFloat(
-          getComputedStyle(document.documentElement).fontSize,
-        );
-        const scrollMarginPx = 13 * rootFont; // mirrors `scroll-margin-top: 13rem`
-        const landings = sections.map((s) =>
-          Math.max(0, s.offsetTop - scrollMarginPx),
-        );
-
-        const scrollY = window.scrollY;
-        let currentIndex = 0;
-        for (let i = landings.length - 1; i >= 0; i--) {
-          if (landings[i]! <= scrollY) {
-            currentIndex = i;
-            break;
-          }
-        }
-        const nextIndex = Math.min(currentIndex + 1, landings.length - 1);
-        const span = Math.max(1, landings[nextIndex]! - landings[currentIndex]!);
-        const frac = Math.max(
-          0,
-          Math.min(1, (scrollY - landings[currentIndex]!) / span),
-        );
-
-        if (Math.abs(frac * 1000 - lastDepth) > 1) {
-          writeFromSections(currentIndex, frac);
-          lastDepth = frac * 1000;
-        }
-      }
-
-      raf = window.requestAnimationFrame(tick);
+      landings = sections.map((s) => {
+        // Read the margin from CSS so the rule lives in one place and
+        // follows CTRL+zoom (it's in rem).
+        const margin = parseFloat(getComputedStyle(s).scrollMarginTop) || 0;
+        return Math.max(0, s.offsetTop - margin);
+      });
     };
 
-    raf = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(raf);
+    const update = () => {
+      raf = 0;
+      if (landings.length < 2) return;
+
+      const scrollY = window.scrollY;
+      let current = 0;
+      for (let i = landings.length - 1; i >= 0; i--) {
+        if (landings[i]! <= scrollY) {
+          current = i;
+          break;
+        }
+      }
+      const next = Math.min(current + 1, landings.length - 1);
+      const span = Math.max(1, landings[next]! - landings[current]!);
+      const frac = Math.max(0, Math.min(1, (scrollY - landings[current]!) / span));
+      writeFromSections(current, frac);
+    };
+
+    const schedule = () => {
+      if (!raf) raf = window.requestAnimationFrame(update);
+    };
+
+    const remeasure = () => {
+      measure();
+      schedule();
+    };
+
+    remeasure();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", remeasure);
+    const resizeObserver = new ResizeObserver(remeasure);
+    resizeObserver.observe(document.body);
+    document.fonts?.ready.then(remeasure);
+
+    return () => {
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", remeasure);
+      resizeObserver.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
+    };
   }, []);
 }

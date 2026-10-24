@@ -7,19 +7,8 @@
 :root {
   color-scheme: dark;
 
-  /* Core palette (DESIGN.md "Core Colors") */
-  --color-void: #070a1f;
-  --color-indigo: #141b45;
-  --color-steel: #2a3a7a;
-  --color-vex-cyan: #6ff2e6;
-  --color-ice: #b8f4ff;
-  --color-magenta-core: #e2337f;
-  --color-dusk-pink: #f28ab8;
-  --color-beam-violet: #b13cff;
-  --color-cyan-shade: #2c9ca6;
-  --color-indigo-raised: #1e2a5a;
-  --color-sky-mid: #3a2a6e;
-  --color-light: #ffffff;
+  /* Colors live once, in the @theme block below (Tailwind emits them as
+     --color-* custom properties on :root). */
 
   /* Grid (rem) */
   --gutter-content: 7.5rem;      /* 120 */
@@ -28,11 +17,13 @@
   --beam-radius: 2.75rem;         /* 44 — half of 88px beam */
 
   /* Effects */
-  --glow-cyan: 0 0 0.375rem rgb(111 242 230 / 0.45);
-  --glow-magenta: 0 0 1.5rem rgb(226 51 127 / 0.6);
-  --glow-magenta-hover: 0 0 2.25rem rgb(226 51 127 / 0.75);
-  --panel-bg: rgb(7 10 31 / 0.62);
-  --panel-border: 1px solid rgb(111 242 230 / 0.22);
+  --glow-cyan: 0 0 0.375rem color-mix(in srgb, var(--color-vex-cyan) 45%, transparent);
+  --glow-cyan-soft: 0 0 0.625rem color-mix(in srgb, var(--color-vex-cyan) 25%, transparent);
+  --glow-magenta: 0 0 1.5rem color-mix(in srgb, var(--color-magenta-core) 60%, transparent);
+  --glow-magenta-hover: 0 0 2.25rem color-mix(in srgb, var(--color-magenta-core) 75%, transparent);
+  --glow-magenta-gate: 0 0 1.75rem color-mix(in srgb, var(--color-magenta-core) 55%, transparent);
+  --panel-bg: color-mix(in srgb, var(--color-void) 62%, transparent);
+  --panel-border: 1px solid color-mix(in srgb, var(--color-vex-cyan) 22%, transparent);
   --panel-blur: blur(1.125rem);
 
   /* Easing + durations */
@@ -47,8 +38,10 @@
 /* Standard TW spacing scale (0.25rem base) covers our 4/8/12/16/24/32/40/56/80/120 ramp
    via p-1 .. p-30 — no custom spacing names needed. */
 
-@theme {
-  /* colors */
+/* `static` keeps every token emitted even if no utility uses it, because
+   inline styles and the WebGL palette read the variables directly. */
+@theme static {
+  /* colors (DESIGN.md "Core Colors" + scene tokens) */
   --color-void: #070a1f;
   --color-indigo: #141b45;
   --color-steel: #2a3a7a;
@@ -99,9 +92,14 @@
 /* ---------- Resets + base ---------- */
 
 @layer base {
+  /* Background on <html> only. A body background would paint over the
+     fixed -z-10 scene layer (sky gradient / WebGL canvas) behind the page. */
+  html {
+    background: var(--color-void);
+  }
+
   html,
   body {
-    background: var(--color-void);
     color: var(--color-ice);
     font-family: var(--font-sans);
     font-size: 100%;              /* 16px nominal, scales with user preference and CTRL+zoom */

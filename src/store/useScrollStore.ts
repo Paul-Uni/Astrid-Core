@@ -14,6 +14,10 @@ export type ScrollState = {
   theta: number;
   /** Camera depth in world units, 0..3700. */
   depth: number;
+  /** Unrounded theta/depth for the WebGL camera. Read with getState() inside
+   *  useFrame so the scene never re-renders React per scroll frame. */
+  thetaExact: number;
+  depthExact: number;
 };
 
 const DEPTH_MAX = STATIONS[STATIONS.length - 1]!.depth;
@@ -25,6 +29,8 @@ export const useScrollStore = create<ScrollState>(() => ({
   stationFrac: 0,
   theta: 0,
   depth: 0,
+  thetaExact: 0,
+  depthExact: 0,
 }));
 
 /**
@@ -43,8 +49,8 @@ export function writeFromSections(currentIndex: number, frac: number) {
   const a = STATIONS[safeIndex]!;
   const b = STATIONS[nextIndex]!;
 
-  const theta = Math.round(a.theta + (b.theta - a.theta) * clampedFrac);
-  const depth = Math.round(a.depth + (b.depth - a.depth) * clampedFrac);
+  const thetaExact = a.theta + (b.theta - a.theta) * clampedFrac;
+  const depthExact = a.depth + (b.depth - a.depth) * clampedFrac;
   const stationId = (clampedFrac >= 0.5 ? nextIndex : safeIndex) as StationId;
   const progress = (safeIndex + clampedFrac) / (STATIONS.length - 1);
 
@@ -52,8 +58,10 @@ export function writeFromSections(currentIndex: number, frac: number) {
     progress,
     station: stationId,
     stationFrac: clampedFrac,
-    theta,
-    depth,
+    theta: Math.round(thetaExact),
+    depth: Math.round(depthExact),
+    thetaExact,
+    depthExact,
   });
 }
 

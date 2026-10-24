@@ -20,26 +20,22 @@ type ButtonProps = Common & ButtonHTMLAttributes<HTMLButtonElement> & { href?: u
 export function ButtonGhost(props: AnchorProps | ButtonProps) {
   const base =
     "inline-flex items-center font-pixel text-pixel-label uppercase px-6 py-4 " +
+    "text-vex-cyan border border-vex-cyan/80 bg-vex-cyan/6 hover:bg-vex-cyan/14 " +
     "transition-[background-color,transform] duration-[var(--dur-hover)] ease-[var(--ease-out)] " +
-    "hover:[&]:[background-color:rgb(111_242_230_/_0.14)] active:scale-[0.97]";
-  const style = {
-    color: "var(--color-vex-cyan)",
-    backgroundColor: "rgb(111 242 230 / 0.06)",
-    border: "1px solid rgb(111 242 230 / 0.8)",
-  } as const;
+    "active:scale-[0.97]";
   const className = `${base} ${props.className ?? ""}`;
 
   if ("href" in props && props.href !== undefined) {
-    const { children, className: _c, style: _s, ...rest } = props;
+    const { children, className: _c, ...rest } = props;
     return (
-      <a {...rest} className={className} style={style}>
+      <a {...rest} className={className}>
         {children}
       </a>
     );
   }
-  const { children, className: _c, style: _s, ...rest } = props;
+  const { children, className: _c, ...rest } = props;
   return (
-    <button type="button" {...rest} className={className} style={style}>
+    <button type="button" {...rest} className={className}>
       {children}
     </button>
   );

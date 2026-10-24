@@ -43,12 +43,7 @@ export function SocialNode({ platform, label, href, copyValue }: SocialNodeProps
           className="absolute inset-0 flex items-center justify-center"
         >
           <span
-            className="block size-[2.875rem] rotate-45"
-            style={{
-              backgroundColor: "rgb(7 10 31 / 0.85)",
-              border: "1.5px solid rgb(111 242 230 / 0.55)",
-              boxShadow: "0 0 0.625rem rgb(111 242 230 / 0.25)",
-            }}
+            className="block size-[2.875rem] rotate-45 border-[1.5px] border-vex-cyan/55 bg-void/85 shadow-[var(--glow-cyan-soft)]"
           />
         </span>
         <img

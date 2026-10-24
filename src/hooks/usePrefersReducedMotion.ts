@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-/**
- * SSR-safe reader of (prefers-reduced-motion: reduce).
- * Starts as `false` on the server so content renders consistently;
- * flips to the real value on mount.
- */
+const QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribe(onChange: () => void) {
+  const mq = window.matchMedia(QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+/** True when the user asked the OS for reduced motion. False on the server. */
 export function usePrefersReducedMotion() {
-  const [prefers, setPrefers] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefers(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setPrefers(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  return prefers;
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(QUERY).matches,
+    () => false,
+  );
 }

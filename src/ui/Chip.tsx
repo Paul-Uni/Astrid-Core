@@ -9,13 +9,7 @@ import type { ReactNode } from "react";
 export function Chip({ children }: { children: ReactNode }) {
   return (
     <span
-      className="inline-flex items-center font-mono text-mono-data lowercase"
-      style={{
-        color: "rgb(184 244 255 / 0.95)",
-        backgroundColor: "rgb(111 242 230 / 0.06)",
-        border: "1px solid rgb(111 242 230 / 0.35)",
-        padding: "0.375rem 0.625rem",
-      }}
+      className="inline-flex items-center border border-vex-cyan/35 bg-vex-cyan/6 px-2.5 py-1.5 font-mono text-mono-data lowercase text-ice/95"
     >
       {children}
     </span>

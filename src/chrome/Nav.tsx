@@ -7,11 +7,7 @@ export function Nav() {
       {/* Fade from void(0.9) to transparent, 150px (~9.375rem) tall per DESIGN.md */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-38"
-        style={{
-          background:
-            "linear-gradient(180deg, rgb(7 10 31 / 0.9) 0%, rgb(7 10 31 / 0) 100%)",
-        }}
+        className="absolute inset-x-0 top-0 h-38 bg-linear-to-b from-void/90 to-void/0"
       />
       <nav
         aria-label="Primary"
@@ -44,11 +40,7 @@ export function Nav() {
           <li>
             <a
               href="#login"
-              className="font-pixel text-pixel-label text-dusk-pink px-3.5 py-2 border transition-colors duration-[var(--dur-hover)]"
-              style={{
-                borderColor: "rgb(226 51 127 / 0.9)",
-                backgroundColor: "rgb(226 51 127 / 0.12)",
-              }}
+              className="font-pixel text-pixel-label text-dusk-pink px-3.5 py-2 border border-magenta-core/90 bg-magenta-core/12 transition-colors duration-[var(--dur-hover)]"
             >
               LOGIN
             </a>

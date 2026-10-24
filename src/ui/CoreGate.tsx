@@ -27,12 +27,7 @@ export function CoreGate({ href = "#login" }: { href?: string }) {
           className="absolute inset-0 flex items-center justify-center"
         >
           <span
-            className="block size-[4.375rem] rotate-45"
-            style={{
-              backgroundColor: "rgb(7 10 31 / 0.9)",
-              border: "2px solid var(--color-magenta-core)",
-              boxShadow: "0 0 1.75rem rgb(226 51 127 / 0.55)",
-            }}
+            className="block size-[4.375rem] rotate-45 border-2 border-magenta-core bg-void/90 shadow-[var(--glow-magenta-gate)]"
           />
         </span>
         {/* Pixel lock */}
