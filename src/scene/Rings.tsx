@@ -11,7 +11,13 @@ import { RENDER_ORDER } from "./streamSpec";
 /** All level rings of the stream, slowly counter-rotating around the beam. */
 export function Rings({ palette, still, stillTime }: { palette: Palette; still: boolean; stillTime: number }) {
   const geometry = useMemo(
-    () => buildRingGeometry({ cyan: palette["vex-cyan"], ice: palette.ice, magenta: palette["magenta-core"] }),
+    () => buildRingGeometry({
+        cyan: palette["vex-cyan"],
+        ice: palette.ice,
+        magenta: palette["magenta-core"],
+        steel: palette.steel,
+        indigoRaised: palette["indigo-raised"],
+      }),
     [palette],
   );
   const materials = useMemo(

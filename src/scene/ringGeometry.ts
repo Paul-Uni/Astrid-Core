@@ -20,7 +20,7 @@ type RingType = 1 | 2 | 3 | 4 | 5;
 /** Seconds per full turn, per ring type. */
 const TURN_PERIOD: Record<RingType, number> = { 1: 40, 2: 55, 3: 70, 4: 60, 5: 90 };
 
-type RingColors = { cyan: Color; ice: Color; magenta: Color };
+type RingColors = { cyan: Color; ice: Color; magenta: Color; steel: Color; indigoRaised: Color };
 
 class Builder {
   pos: number[] = [];

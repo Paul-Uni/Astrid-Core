@@ -1,7 +1,6 @@
 import { Nav } from "@/chrome/Nav";
 import { OrbitRail } from "@/chrome/OrbitRail";
 import { Hud } from "@/chrome/Hud";
-import { Section } from "@/sections/Section";
 import { Station00Entry } from "@/sections/Station00Entry";
 import { Station01About } from "@/sections/Station01About";
 import { Station02Skills } from "@/sections/Station02Skills";
@@ -10,7 +9,6 @@ import { Station04Background } from "@/sections/Station04Background";
 import { Station05Contact } from "@/sections/Station05Contact";
 import { ScrollProgressDriver } from "./ScrollProgressDriver";
 import { StageLoader } from "@/scene/StageLoader";
-import { STATIONS } from "@/tokens/stations";
 
 export default function Home() {
   return (
@@ -24,11 +22,15 @@ export default function Home() {
       <StageLoader />
 
       <ScrollProgressDriver />
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-14 focus:top-4 focus:z-50 focus:border focus:border-vex-cyan focus:bg-void focus:px-4 focus:py-2 focus:font-mono focus:text-mono-label focus:uppercase focus:text-ice"
+      >
+        Skip to content
+      </a>
       <Nav />
-      <OrbitRail />
-      <Hud />
 
-      <main className="relative">
+      <main id="main" tabIndex={-1} className="relative focus:outline-none">
         <Station00Entry />
         <Station01About />
         <Station02Skills />
@@ -36,6 +38,10 @@ export default function Home() {
         <Station04Background />
         <Station05Contact />
       </main>
+
+      {/* Fixed chrome after the content, so keyboard users reach the stations first. */}
+      <OrbitRail />
+      <Hud />
     </>
   );
 }

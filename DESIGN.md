@@ -7,6 +7,8 @@ Tokens below are taken from the Figma variables and text styles. If Figma and th
 
 **Impeccable loop paused (Paul, 2026-10-24).** Do not run `/impeccable` commands (critique, polish, audit, document) or treat their findings as blocking until Paul resumes it. The last critique snapshot stays in `.impeccable/critique/` for when the loop resumes. Visual verification with Playwright screenshots continues as usual.
 
+**Deferred until the desktop design is done (Paul, 2026-10-24):** mobile station layouts, GPU quality tiers (detect-gpu), static WebGL fallback poster.
+
 ## Concept
 
 All site copy is in **English**.
@@ -119,7 +121,7 @@ Glass panels carry 14px cyan corner brackets (2px stroke) on all four corners.
 | Chip | Skill/stack tag. Mono/Data, ice text 0.95, 1px cyan border at 0.35, cyan fill at 0.06, padding 6/10, wraps in rows with 8px gaps |
 | Section Label | `// 0n — NAME` in Mono/Label, cyan 0.9. First line of every section panel |
 | Cluster / Project / Entry panels | Glass panels (padding 22–28) with a Mono/Data meta line (`// NODE 01 · …`), a Heading/M or Display/L title, Body/M text, optional chips. Each is tied to the beam by a dashed 1px cyan connector ending in a rotated square node at the beam edge (x 676 / 764) |
-| Core Gate (05) | No text, no explanation. A pixel lock (dusk-pink, 12×14 grid, 36×42px) inside a 70px rotated square node (void fill 0.9, 2px magenta border, magenta glow, dashed 88px outer ring) sitting on the emitter at the bottom of the stream, Button/Core `ENTER CORE →` centered below it |
+| Core Gate (05) | No text, no explanation. The Core lock (WebGL, see the emitter floor) lies over the spacetime well; the beam drops through its keyhole. Button/Core outline variant `ENTER CORE →` below (anchor + 176px; 1px magenta frame, void 55%, dusk-pink text; fills with `--cta-fill` and ice text on hover/focus). Hovering or focusing it sets the core to boost: the lock's edge turns from magenta-core to vex-cyan and glows brighter, core light turns dusk pink, the heartbeat speeds up from 7 s to 1.5 s |
 | Social Node (05) | Component `Social Node` with `State=Default|Hover`, props `Label` (text) and `Icon` (instance swap). 46px rotated square (void 0.85, 1.5px cyan border 0.55, cyan glow) holding a 24px icon, Mono/Data label below (`GITHUB ↗`, `LINKEDIN ↗`, `DISCORD · COPY`). Sits on the contact orbit (ellipse around the lock, rx 330 / ry 118). Click: GitHub/LinkedIn open in a new tab, Discord copies `paul_lauer` and the label shows `COPIED ✓` for 1.5s. Needs an aria-label. Motion: fly in along the orbit while scrolling into 05, then rest. Reduced motion: static |
 | Icon slots | `Icon/GitHub (slot)`, `Icon/LinkedIn (slot)`, `Icon/Discord (slot)`: 24×24 components. Paste the official logo SVG from each brand's asset kit into the slot (single color, ice); in code use an icon package. Logos are not drawn by hand |
 | HUD line | Bottom left: `↓ SCROLL TO ORBIT` + `cam.θ 000° · depth 0000 · core: astrid`. θ and depth count live while scrolling |
@@ -156,10 +158,25 @@ Built as a WebGL scene from the spec in `Stream/Full` (`14:21`):
 - **Spacing:** clusters of 2–3 tightly stacked levels, then a gap.
 - **Depth:** brightness fades continuously around each ring, dim at the back and bright at the front (no hard switch at the sides); the beam sits between the back and front halves.
 - **Fragments:** small wireframe cubes only (no large bodies), in front of and behind the stream, drifting outward with height.
-- **Top:** white light source with cyan halo and light shaft. **Bottom:** emitter disc with ripples and radial spokes on a cyan iso floor grid.
+- **Top (open beam):** no visible source and no hardware. The beam starts 400px above the page (off screen) and fades in over 520px, so at the top of the page it comes down out of the dark under the nav, as if the stream were endless. Figma's first ring cluster (y 37–148) stays left out so the top stays open.
+- **Bottom (emitter floor, spacetime well):** the beam falls into a gravity well, drawn like the textbook picture of a massive object bending spacetime (references: `References/example ssm..png`, side view in `References/example lock.png`). A cyan grid sheet (40px cells at 45°) covers the whole ground (r 1600) and fades out at the viewport's left, right and bottom edges. It stays flat, then plunges into a narrow, very deep throat (depth 900 · r0²/(r²+r0²), r0 40px) that runs off the bottom of the screen; grid lines brighten down the throat. The core (beam end) sits at the bottom of the throat, off screen. The Core Gate anchor (720/610 in the 05 frame) lines up with Figma y 4440, 70px above the sheet. The **Core lock** lies flat on the sheet over the well's mouth, covering it: one solid padlock silhouette (no circuit traces), not a 3D object. Body 160×130px (corner 22), shackle arch r 50 with a 20px bar on 24px legs, keyhole (r 17 round part, tapered slot) centered on the beam axis so the beam drops through it. Dark glass with a neon edge: a void plate at ~55% opacity (faintly tinted by the edge color), so the grid shows through dimmed and the lock separates from the pink floor; a bright magenta-core outline that blooms carries the color (vex-cyan on boost); ice core glow around the keyhole, flaring on each beat. Turned like the floor grid (45° steps): at 315°, the grid direction closest to the station-05 camera angle (300°), so its edges run along the grid lines. It hides the beam below it except through the keyhole. No motion of its own.
+- **Floor pillars** (References/"Background inspo", "bg inspo 2"; code: `FloorPillars.tsx`, spec `STREAM.emitter.pillars`): the backdrop is built on the floor grid, not floating at random. Every size is whole grid cells (40px), footprints turned 45° onto the grid. Eight pillars in a symmetric layout (turned 22.5° so a pair frames the beam at 03): four at r 14 cells (4×4 footprint, 26 cells tall), four at r 24 (5×5, 35 cells tall, reaching the bottom of station 03). Each pillar is a composed megastructure: 3–4 tiers narrowing by one cell (some shifted half a cell), a recessed notch band, a cantilever arm, a stair-stepped pixel top, ice scaffold frames one cell larger than a tier with corner lines overshooting 1–3 cells, and a chain of floating wire cubes. Floating modules (small blocks with scaffold, or wire-cube pairs) hover on a ring at r 20 between the pillars at alternating 7/14/21-cell levels. Floating parts bob ±0.4 cell over 16 s (still under reduced motion). Solids: void sides, indigo-raised tops at 90%; outlines vex-cyan with a glow where they meet the grid; scaffolds ice. Everything dissolves into the sky between 1000 and 1750px above the floor (scaffolds 250px later), and in a screen column 140–340px around the beam, parts more than 120px up behind it and everything between the camera and it fade out, so the stream, lock and Enter Core are never covered.
 - Bloom: in Figma faked with a blurred duplicate; in code use a real bloom pass.
 
 ## Motion
+
+### Core heartbeat (code only, WebGL)
+
+One clock (`src/scene/corePulse.ts`) drives three things so they read as a single beat:
+
+| Element | Motion |
+|---|---|
+| Core flare | Core glow around the Core lock's keyhole and the emitter glow flare on each beat (sharp rise over 3% of the beat, fast decay) |
+| Gulp | A bulge wider than the beam (≈84px) leaves the core at the bottom of the throat and rises ≈1700px over 80% of the beat, slowing down and shrinking into the core line instead of fading out |
+| Well ripple | One ripple per beat runs out over the spacetime sheet to r 520 over 70% of the beat, fading as it grows |
+
+Beat: 7 s at rest, 1.5 s while Enter Core is hovered or focused (eased, no phase jump). Color eases from ice to dusk pink with the same boost. Under reduced motion the beat holds between pulses (nothing in flight); hover still tints the core.
+
 
 ### Ambient stream motion (code only, WebGL)
 
@@ -175,7 +192,7 @@ The stream is never fully still, but it moves slowly enough to read as atmospher
 | Direction | Each ring gets a random direction; within a cluster, neighbouring rings alternate where possible so they visibly counter-rotate |
 | Variation | Each ring's speed is its type's value ±20% (seeded random), so no two rings move in lockstep |
 | Fragments (wireframe cubes) | Drift slowly upward (~4–10 px/s, varied) and outward a little, orbit the beam counter-clockwise seen from above (~one turn per 60–120s, so front cubes cross the beam left → right in front of it and back cubes right → left behind it), tumble on all axes (~one turn per 20–40s), fade out near the top/edges and respawn near the beam. Front cubes are opaque |
-| Beam particles | As in the Figma prototype: three layers, 75 / 112.5 / 150 px/s upward |
+| Beam particles | Three layers, 24 / 36 / 48 px/s upward (0.32× the Figma prototype's 75 / 112.5 / 150, slowed on request) |
 | Easing | All ambient motion is linear and continuous, no easing, no pulsing |
 | Performance | Instanced meshes for blocks and cubes, one draw call per ring type where possible; pause the render loop when the tab is hidden or the canvas is off-screen |
 | Reduced motion | `prefers-reduced-motion: reduce`: no rotation, no drift, no particle flow. The scene renders one still frame |

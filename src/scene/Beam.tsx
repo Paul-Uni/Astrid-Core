@@ -4,24 +4,28 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type { Mesh, ShaderMaterial } from "three";
 import { createBeamMaterial } from "./materials";
+import { pulseUniforms } from "./corePulse";
 import type { Palette } from "./palette";
-import { RENDER_ORDER, STREAM, toWorld, toWorldY } from "./streamSpec";
+import { CORE_Y, RENDER_ORDER, STREAM, toWorld, toWorldY } from "./streamSpec";
 import { Billboard } from "./Billboard";
 
 /** Plane wide enough for the 88px beam plus its outer glow. */
 const PLANE_WIDTH_PX = 240;
-const TOP_PX = 30; // just under the light source (Figma y −30)
+/** The beam comes down from above the page (STREAM.beamTop). In world px (y up). */
+const TOP_PX = -STREAM.beamTop.y;
 
-/** The vertical beam of light running from the light source down to the emitter. */
+/** The vertical beam of light running from above the page down into the core at the bottom of the well. */
 export function Beam({ palette, still, stillTime }: { palette: Palette; still: boolean; stillTime: number }) {
-  const bottomPx = -STREAM.emitter.cy;
+  const bottomPx = -CORE_Y;
   const material = useMemo(
     () =>
       createBeamMaterial(
-        { cyan: palette["vex-cyan"], ice: palette.ice, light: palette.light },
+        { cyan: palette["vex-cyan"], ice: palette.ice, light: palette.light, dusk: palette["dusk-pink"] },
         PLANE_WIDTH_PX,
         TOP_PX,
+        STREAM.beamTop.fade,
         bottomPx,
+        pulseUniforms,
       ),
     [palette, bottomPx],
   );
@@ -34,7 +38,7 @@ export function Beam({ palette, still, stillTime }: { palette: Palette; still: b
   });
 
   const top = toWorld(TOP_PX);
-  const bottom = toWorldY(STREAM.emitter.cy);
+  const bottom = toWorldY(CORE_Y);
   return (
     <Billboard>
       <mesh ref={mesh} renderOrder={RENDER_ORDER.beam} position={[0, (top + bottom) / 2, 0]} material={material}>

@@ -8,22 +8,14 @@ import { STATIONS } from "@/tokens/stations";
 
 /**
  * Station 05 — Contact. Translated from Figma node 49:5916.
- * Contact panel left; three Social Nodes on a dashed orbit around the
- * Core Gate; Enter Core centered on the emitter; footer bottom-right.
+ * Contact panel left; three Social Nodes around the Core Gate, which sits
+ * at the bottom of the emitter's gravity well; footer bottom-right.
  */
 export function Station05Contact() {
   const station = STATIONS[5]!;
   return (
     <Section station={station}>
       <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
-        {/* Contact orbit — dashed cyan ellipse around the Core Gate */}
-        <img
-          aria-hidden
-          src="/contact-orbit.svg"
-          alt=""
-          className="pointer-events-none absolute inset-0 size-full"
-        />
-
         {/* Contact panel — Figma (84, 150), width 500, padding 32 */}
         <GlassPanel
           className="flex w-[31.25rem] flex-col gap-5 p-8"
@@ -98,8 +90,8 @@ export function Station05Contact() {
           />
         </div>
 
-        {/* Core Gate — Figma (633, 658), centered on the emitter */}
-        <div className="absolute left-[39.5625rem] top-[41.125rem]">
+        {/* Core Gate: a point at the well's mouth (720, 610); the floor lines up with it, the throat drops below */}
+        <div className="absolute left-[45rem] top-[38.125rem]">
           <CoreGate href="#login" />
         </div>
 

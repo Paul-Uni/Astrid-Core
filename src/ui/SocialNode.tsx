@@ -16,22 +16,28 @@ type SocialNodeProps = {
  * - 46px rotated square (void 0.85 bg, 1.5px cyan border 0.55, cyan glow)
  * - 24px icon centered
  * - Mono/Data label below ("GITHUB ↗", "LINKEDIN ↗", "DISCORD · COPY")
- * - Discord: copies username, label switches to "COPIED ✓" for 1.5s
+ * - Discord: copies username, label switches to "COPIED ✓" for 1.5s.
+ *   If the clipboard is blocked, the label shows the username for 4s
+ *   so it can be read and copied by hand.
  */
 export function SocialNode({ platform, label, href, copyValue }: SocialNodeProps) {
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const showStatus = (next: "copied" | "failed", ms: number) => {
+    setStatus(next);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setStatus("idle"), ms);
+  };
 
   const handleCopy = async () => {
     if (!copyValue) return;
     try {
       await navigator.clipboard.writeText(copyValue);
-      setCopied(true);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setCopied(false), 1500);
+      showStatus("copied", 1500);
     } catch {
-      // clipboard denied — stay silent, label stays as-is
+      showStatus("failed", 4000);
     }
   };
 
@@ -54,10 +60,13 @@ export function SocialNode({ platform, label, href, copyValue }: SocialNodeProps
         />
       </span>
       <span
-        className="font-mono text-mono-data uppercase"
-        style={{ color: "var(--color-vex-cyan)" }}
+        aria-live={copyValue ? "polite" : undefined}
+        className={
+          "font-mono text-mono-data text-vex-cyan " +
+          (status === "failed" ? "select-all normal-case" : "uppercase")
+        }
       >
-        {copied ? "COPIED ✓" : label}
+        {status === "copied" ? "COPIED ✓" : status === "failed" ? copyValue : label}
       </span>
     </>
   );

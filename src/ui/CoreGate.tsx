@@ -1,46 +1,32 @@
+"use client";
+
+import { useCoreStore } from "@/store/useCoreStore";
 import { ButtonCore } from "./ButtonCore";
 
+const setHover = (hover: boolean) => useCoreStore.setState({ hover });
+
 /**
- * Core Gate per DESIGN.md:
- * - 70px rotated square node (void 0.9 bg, 2px magenta border, magenta glow)
- * - dashed 88px outer ring (magenta dashed)
- * - 36×42 pixel lock centered (from /lock-pixel.svg)
- * - Button/Core "ENTER CORE →" below (12px gap)
+ * Core Gate (References/"example lock"). The lock itself is WebGL
+ * (scene/CoreLock): a glass padlock lying over the gravity well's mouth.
+ * Below the throat, Button/Core (outline) "ENTER CORE". Hover or focus on
+ * the button sets the core store: the lock brightens, the core light turns
+ * dusk pink and the heartbeat speeds up (corePulse).
+ *
+ * The wrapper is a zero-size point at the well's mouth.
+ * data-core-anchor marks it so the stream lines the lock up with it.
  */
 export function CoreGate({ href = "#login" }: { href?: string }) {
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* data-core-anchor: the WebGL stream lines its emitter up under this lock. */}
-      <div data-core-anchor className="relative size-[6.5rem]">
-        {/* Outer dashed ring */}
-        <span
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <span
-            className="block size-[5.5rem] rotate-45"
-            style={{ border: "1px dashed var(--color-magenta-core)" }}
-          />
-        </span>
-        {/* Inner node */}
-        <span
-          aria-hidden
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <span
-            className="block size-[4.375rem] rotate-45 border-2 border-magenta-core bg-void/90 shadow-[var(--glow-magenta-gate)]"
-          />
-        </span>
-        {/* Pixel lock */}
-        <img
-          aria-hidden
-          src="/lock-pixel.svg"
-          alt=""
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[2.625rem] w-[2.25rem] -translate-x-1/2 -translate-y-1/2"
-        />
-      </div>
-
-      <ButtonCore href={href}>
+    <div data-core-anchor className="relative size-0">
+      <ButtonCore
+        variant="outline"
+        href={href}
+        className="absolute left-0 top-[11rem] -translate-x-1/2 whitespace-nowrap"
+        onPointerEnter={() => setHover(true)}
+        onPointerLeave={() => setHover(false)}
+        onFocus={() => setHover(true)}
+        onBlur={() => setHover(false)}
+      >
         Enter Core
         <span aria-hidden>→</span>
       </ButtonCore>

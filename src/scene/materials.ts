@@ -1,4 +1,5 @@
-import { AdditiveBlending, Color, ShaderMaterial, Vector3 } from "three";
+import { CORE_PULSE, pulseFlareGLSL, type pulseUniforms } from "./corePulse";
+import { AdditiveBlending, Color, DoubleSide, NormalBlending, ShaderMaterial, Vector2, Vector3 } from "three";
 
 /**
  * Shader materials for the stream. All colors come in as uniforms from the
@@ -75,7 +76,7 @@ export function createSkyMaterial(colors: {
   });
 }
 
-/** Soft elliptical glow sprite (light source, halo, emitter glow). */
+/** Soft elliptical glow sprite (emitter glow). */
 export function createGlowMaterial(color: Color, intensity: number, falloff: number) {
   return new ShaderMaterial({
     ...additive,
@@ -100,48 +101,37 @@ export function createGlowMaterial(color: Color, intensity: number, falloff: num
   });
 }
 
-/** Light shaft under the source: bright at the top, fading down. */
-export function createShaftMaterial(color: Color, intensity: number) {
-  return new ShaderMaterial({
-    ...additive,
-    uniforms: { uColor: { value: color }, uIntensity: { value: intensity } },
-    vertexShader: WORLD_VERTEX,
-    fragmentShader: /* glsl */ `
-      uniform vec3 uColor;
-      uniform float uIntensity;
-      varying vec2 vUv;
-      void main() {
-        float x = (vUv.x - 0.5) * 2.0;
-        // Clamp: interpolated vUv.y can dip just below 0 at the edge → pow() NaN → bloom blacks out the frame.
-        float a = exp(-x * x * 4.0) * pow(clamp(vUv.y, 1e-6, 1.0), 1.6) * uIntensity;
-        gl_FragColor = vec4(uColor * a, 1.0);
-        #include <colorspace_fragment>
-      }
-    `,
-  });
-}
-
 /**
  * The beam: soft cyan body, white core line, fine dashed data lines and
  * three layers of small bits rising at 75 / 112.5 / 150 px/s (DESIGN.md).
  * Works in Figma px around the beam axis so sizes match the spec 1:1.
  */
-export function createBeamMaterial(colors: { cyan: Color; ice: Color; light: Color }, widthPx: number, topPx: number, bottomPx: number) {
+export function createBeamMaterial(
+  colors: { cyan: Color; ice: Color; light: Color; dusk: Color },
+  widthPx: number,
+  topPx: number,
+  topFadePx: number,
+  bottomPx: number,
+  pulse: typeof pulseUniforms,
+) {
   return new ShaderMaterial({
     ...additive,
     uniforms: {
+      ...pulse,
+      uDusk: { value: colors.dusk },
       uTime: { value: 0 },
       uCyan: { value: colors.cyan },
       uIce: { value: colors.ice },
       uLight: { value: colors.light },
       uWidthPx: { value: widthPx },
       uTopPx: { value: topPx },
+      uTopFade: { value: topFadePx },
       uBottomPx: { value: bottomPx },
     },
     vertexShader: WORLD_VERTEX,
     fragmentShader: /* glsl */ `
-      uniform float uTime, uWidthPx, uTopPx, uBottomPx;
-      uniform vec3 uCyan, uIce, uLight;
+      uniform float uTime, uWidthPx, uTopPx, uTopFade, uBottomPx, uPulse, uBoost;
+      uniform vec3 uCyan, uIce, uLight, uDusk;
       varying vec2 vUv;
       varying float vWorldY;
 
@@ -183,7 +173,7 @@ export function createBeamMaterial(colors: { cyan: Color; ice: Color; light: Col
         if (ax < 38.0) {
           for (int l = 0; l < 3; l++) {
             float fl = float(l);
-            float speed = 75.0 + 37.5 * fl;
+            float speed = 24.0 + 12.0 * fl;
             float y = py - uTime * speed;
             vec2 cellSize = vec2(4.0, 9.0);
             vec2 cell = floor(vec2(px, y) / cellSize);
@@ -196,12 +186,27 @@ export function createBeamMaterial(colors: { cyan: Color; ice: Color; light: Col
           }
         }
 
-        // Fade in under the light source and out into the emitter.
-        float fade = smoothstep(uBottomPx, uBottomPx + 160.0, py) * (1.0 - smoothstep(uTopPx - 90.0, uTopPx, py));
+        // Fade in from above the page and out into the emitter.
+        float fade = smoothstep(uBottomPx, uBottomPx + 160.0, py) * (1.0 - smoothstep(uTopPx - uTopFade, uTopPx, py));
         // Hard window so the glow tails reach exactly zero before the plane edge
         // (sRGB output would otherwise turn tiny tails into a visible band).
-        fade *= 1.0 - smoothstep(uWidthPx * 0.3, uWidthPx * 0.5, ax);
-        gl_FragColor = vec4(c * fade, 1.0);
+        float window = 1.0 - smoothstep(uWidthPx * 0.3, uWidthPx * 0.5, ax);
+        fade *= window;
+
+        // Core pulse, a "gulp": a bulge wider than the beam leaves the core,
+        // rises ~1700px (out of the deep throat) while slowing down, and shrinks into the core line
+        // instead of fading out.
+        float s = clamp(uPulse / ${CORE_PULSE.riseShare.toFixed(2)}, 0.0, 1.0);
+        float k = 1.0 - s;                             // size left
+        float yP = uBottomPx - 40.0 + 1700.0 * (1.0 - k * k);
+        float hw = 2.0 + 40.0 * k;                     // half width, px
+        float hh = 20.0 + 60.0 * k;                    // half height, px
+        float op = smoothstep(0.0, 0.05, s) * step(uPulse, ${CORE_PULSE.riseShare.toFixed(2)});
+        float blob = exp(-sq((py - yP) / hh)) * exp(-sq(ax / hw)) * op * (0.35 + 0.45 * k);
+        vec3 pulse = mix(uLight, mix(uIce, uDusk, uBoost), 0.45) * blob
+          * smoothstep(uBottomPx - 10.0, uBottomPx + 30.0, py) * window;
+
+        gl_FragColor = vec4(c * fade + pulse, 1.0);
         #include <colorspace_fragment>
       }
     `,
@@ -334,6 +339,256 @@ export function createFragmentMaterial(
         // Front cubes are opaque so the beam never shows through them.
         float a = mix(uEdges > 0.5 ? 0.9 : 0.85, 1.0, step(0.0, facing)) * vAlpha * dim;
         gl_FragColor = vec4(c, a);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+/**
+ * Emitter floor: a gravity well, drawn like the textbook picture of a
+ * massive object bending spacetime (References/"example lock" side view).
+ * The grid sheet stays flat, then plunges into a narrow, very deep throat
+ * that runs off the bottom of the screen: depth uWellDepth * r0^2 / (r^2 + r0^2),
+ * r0 = uWellRadius. Each core beat sends one ripple out over the sheet.
+ * Works in Figma px from the beam axis. Fades at the rim and at the
+ * viewport edges (uViewport = drawing buffer size, set every frame).
+ */
+export function createFloorMaterial(
+  colors: { cyan: Color; ice: Color; dusk: Color },
+  spec: { radius: number; gridCell: number },
+  well: { depth: number; radius: number },
+  pulse: typeof pulseUniforms,
+) {
+  return new ShaderMaterial({
+    ...additive,
+    side: DoubleSide,
+    uniforms: {
+      ...pulse,
+      uCyan: { value: colors.cyan },
+      uIce: { value: colors.ice },
+      uDusk: { value: colors.dusk },
+      uRadius: { value: spec.radius },
+      uCell: { value: spec.gridCell },
+      uWellDepth: { value: well.depth },
+      uWellRadius: { value: well.radius },
+      uViewport: { value: new Vector2(1, 1) },
+    },
+    vertexShader: /* glsl */ `
+      uniform float uWellDepth, uWellRadius;
+      varying vec2 vP;
+      varying float vWell;
+      void main() {
+        vP = position.xy * 100.0; // px on the flat sheet
+        float r0 = uWellRadius;
+        vWell = r0 * r0 / (dot(vP, vP) + r0 * r0);
+        vec3 pos = position;
+        pos.z -= uWellDepth * vWell / 100.0; // local z is world up (the plane lies flat)
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform float uPulse, uBoost, uRadius, uCell;
+      uniform vec2 uViewport;
+      uniform vec3 uCyan, uIce, uDusk;
+      varying vec2 vP;
+      varying float vWell;
+
+      float sq(float x) { return x * x; }
+      // Anti-aliased line of width w (px) around distance d.
+      float line(float d, float w) {
+        float fw = max(fwidth(d), 1e-4);
+        return 1.0 - smoothstep(w * 0.5, w * 0.5 + fw, abs(d));
+      }
+
+      void main() {
+        vec2 p = vP;
+        float r = length(p);
+        vec2 sc = gl_FragCoord.xy / uViewport;
+        float edge = smoothstep(0.0, 0.2, sc.x) * smoothstep(1.0, 0.8, sc.x) * smoothstep(0.0, 0.04, sc.y);
+        float rim = (1.0 - smoothstep(uRadius * 0.5, uRadius, r)) * edge;
+
+        // Spacetime grid: square cells turned 45 deg, brighter down the throat.
+        vec2 q = vec2(p.x + p.y, p.y - p.x) * 0.70710678 / uCell;
+        vec2 gq = abs(fract(q - 0.5) - 0.5) / max(fwidth(q), vec2(1e-4));
+        float grid = 1.0 - min(min(gq.x, gq.y), 1.0);
+        vec3 c = uCyan * grid * (0.15 + 0.35 * sqrt(vWell)) * rim;
+
+        // One ripple per beat, running out over the sheet.
+        float w = uPulse / ${CORE_PULSE.waveShare.toFixed(2)};
+        if (w < 1.0) {
+          float rr = mix(60.0, 520.0, 1.0 - sq(1.0 - w));
+          float alpha = smoothstep(0.0, 0.09, w) * (1.0 - w);
+          c += mix(uIce, uDusk, uBoost) * (line(r - rr, 2.5) + exp(-sq((r - rr) / 12.0)) * 0.4) * alpha * rim;
+        }
+
+        // Deep in the throat triangles collapse on screen and fwidth() turns
+        // inf/NaN; drop those pixels, or bloom spreads the NaN over the frame.
+        if (any(isnan(c)) || any(isinf(c))) discard;
+        gl_FragColor = vec4(c, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+/**
+ * Core lock: one flat padlock of translucent dark glass lying over the
+ * well's mouth (References/"example lock"). A void plate, faintly tinted by
+ * the edge color, dims the floor grid behind it so the neon outline reads
+ * against the pink floor. The core lights it from below around the keyhole,
+ * flaring on each beat. Writes depth: the beam below it is hidden except
+ * where it drops through the keyhole (a real hole in the mesh).
+ */
+export function createLockMaterial(
+  colors: { void: Color; locked: Color; open: Color; ice: Color },
+  pulse: typeof pulseUniforms,
+) {
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: true,
+    side: DoubleSide,
+    uniforms: {
+      ...pulse,
+      uVoid: { value: colors.void },
+      uLocked: { value: colors.locked },
+      uOpen: { value: colors.open },
+      uIce: { value: colors.ice },
+    },
+    vertexShader: /* glsl */ `
+      varying vec2 vXZ;
+      void main() {
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vXZ = w.xz * 100.0; // px from the beam axis
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform float uPulse, uBoost;
+      uniform vec3 uVoid, uLocked, uOpen, uIce;
+      varying vec2 vXZ;
+      ${pulseFlareGLSL}
+
+      float sq(float x) { return x * x; }
+
+      void main() {
+        float glow = exp(-sq(length(vXZ) / 50.0)) * (0.35 + 0.9 * pulseFlare(uPulse));
+        vec3 tint = mix(uLocked, uOpen, uBoost);
+        vec3 col = mix(uVoid, tint, 0.12 + 0.08 * uBoost) + mix(uIce, tint, 0.5) * glow * 0.45;
+        float alpha = clamp(0.55 + 0.25 * glow, 0.0, 1.0);
+        gl_FragColor = vec4(col, alpha);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+/** Core lock outline: neon edges (silhouette and keyhole), hot enough to bloom. Magenta-core at rest, vex-cyan on boost; whiter on each beat. */
+export function createLockEdgeMaterial(colors: { locked: Color; open: Color; light: Color }, pulse: typeof pulseUniforms) {
+  return new ShaderMaterial({
+    ...additive,
+    uniforms: {
+      ...pulse,
+      uLocked: { value: colors.locked },
+      uOpen: { value: colors.open },
+      uLight: { value: colors.light },
+    },
+    vertexShader: /* glsl */ `
+      void main() {
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform float uPulse, uBoost;
+      uniform vec3 uLocked, uOpen, uLight;
+      ${pulseFlareGLSL}
+      void main() {
+        vec3 col = mix(mix(uLocked, uOpen, uBoost), uLight, 0.2 * pulseFlare(uPulse)) * (2.0 + 0.6 * uBoost);
+        gl_FragColor = vec4(col, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+
+/**
+ * Floor pillars (faces, solid outlines or scaffold lines). Solids: void
+ * sides, raised-indigo tops; outlines faint cyan with a glow where they meet
+ * the floor; scaffolds brighter ice lines. Everything dissolves into the
+ * sky with height above the floor (`haze`). In a screen column around the
+ * beam, parts high up behind it and pillars between the camera and it fade
+ * out, so the stream stays clear. Floating parts bob in place (`aFloat`: amplitude, phase).
+ */
+export function createStructureMaterial(
+  kind: "faces" | "edges" | "scaffold",
+  colors: { void: Color; top: Color; edge: Color; scaffold: Color },
+  spec: {
+    floorY: number;
+    hazeStart: number;
+    hazeEnd: number;
+    column: { inner: number; outer: number; columnFrom: number };
+    bobPeriod: number;
+  },
+) {
+  const faces = kind === "faces";
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: faces,
+    blending: faces ? NormalBlending : AdditiveBlending,
+    uniforms: {
+      uTime: { value: 0 },
+      uViewport: { value: new Vector2(1, 1) },
+      uDpr: { value: 1 },
+      uScale: { value: 1 },
+      uFloorY: { value: spec.floorY },
+      uHaze: { value: new Vector2(spec.hazeStart, spec.hazeEnd) },
+      uColumn: { value: new Vector3(spec.column.inner, spec.column.outer, spec.column.columnFrom) },
+      uCamPos: { value: new Vector3() },
+      uVoid: { value: colors.void },
+      uTop: { value: colors.top },
+      uEdge: { value: kind === "scaffold" ? colors.scaffold : colors.edge },
+    },
+    vertexShader: /* glsl */ `
+      attribute vec2 aFloat; // bob amplitude (world units), phase
+      uniform float uTime;
+      varying vec3 vN;
+      varying float vH;
+      varying vec2 vXZ;
+      void main() {
+        vN = normal;
+        vec4 w = modelMatrix * vec4(position, 1.0);
+        vXZ = w.xz * 100.0; // px from the beam axis
+        w.y += aFloat.x * sin(uTime * ${(Math.PI * 2 / spec.bobPeriod).toFixed(5)} + aFloat.y);
+        vH = (w.y - ${spec.floorY.toFixed(4)}) * 100.0; // px above the floor
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec2 uViewport, uHaze;
+      uniform vec3 uColumn, uVoid, uTop, uEdge, uCamPos;
+      uniform float uDpr, uScale;
+      varying vec3 vN;
+      varying float vH;
+      varying vec2 vXZ;
+      void main() {
+        float haze = 1.0 - smoothstep(uHaze.x, uHaze.y, vH);
+        float dx = abs(gl_FragCoord.x - uViewport.x * 0.5) / uDpr;
+        float column = smoothstep(uColumn.x * uScale, uColumn.y * uScale, dx);
+        // Behind the beam: only parts high up. Between camera and beam: everything.
+        float near = smoothstep(-0.1, 0.1, dot(normalize(vXZ + 1e-3), normalize(uCamPos.xz + 1e-3)));
+        column = mix(1.0, column, max(near, smoothstep(uColumn.z * 0.6, uColumn.z, vH)));
+        float fade = haze * column;
+        if (fade <= 0.002) discard;
+        ${
+          faces
+            ? `float lit = max(vN.y, 0.0) * 0.8 + abs(vN.x) * 0.15;
+        gl_FragColor = vec4(mix(uVoid, uTop, lit), 0.9 * fade);`
+            : kind === "edges"
+              ? `float foot = 1.0 + 1.5 * exp(-max(vH, 0.0) / 40.0);
+        gl_FragColor = vec4(uEdge * 0.35 * foot * fade, 1.0);`
+              : `gl_FragColor = vec4(uEdge * 0.5 * fade, 1.0);`
+        }
         #include <colorspace_fragment>
       }
     `,

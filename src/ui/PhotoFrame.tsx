@@ -15,8 +15,8 @@ export function PhotoFrame({
   return (
     <GlassPanel className="flex w-[18.75rem] flex-col gap-4 p-4">
       <div
-        className="relative flex h-[20.9375rem] w-[16.75rem] items-center justify-center overflow-hidden"
-        style={{ backgroundColor: "var(--color-indigo)" }}
+        role="img"
+        className="relative flex h-[20.9375rem] w-[16.75rem] items-center justify-center overflow-hidden bg-indigo"
         aria-label="Photo of Paul — image pending"
       >
         <img
@@ -25,17 +25,11 @@ export function PhotoFrame({
           alt=""
           className="pointer-events-none absolute inset-0 size-full"
         />
-        <p
-          className="font-mono text-mono-label uppercase"
-          style={{ color: "var(--color-vex-cyan)" }}
-        >
+        <p aria-hidden className="font-mono text-mono-label uppercase text-vex-cyan">
           {`// IMAGE PENDING`}
         </p>
       </div>
-      <p
-        className="font-mono text-mono-data lowercase"
-        style={{ color: "var(--color-ice)" }}
-      >
+      <p className="font-mono text-mono-data lowercase text-ice">
         {caption}
       </p>
     </GlassPanel>

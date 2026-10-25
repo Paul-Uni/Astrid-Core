@@ -21,14 +21,10 @@ export function Section({ station, children, heightClass = "min-h-[56.25rem]" }:
   return (
     <section
       id={station.slug}
-      aria-labelledby={`${station.slug}-label`}
+      aria-label={`0${station.id} — ${station.label}`}
       data-station={station.id}
       className={`relative w-full ${heightClass}`}
     >
-      {/* Section label (sr-only in placeholder; visible panel comes in Phase B/E) */}
-      <h2 id={`${station.slug}-label`} className="sr-only">
-        {`0${station.id} — ${station.label}`}
-      </h2>
       {children}
     </section>
   );

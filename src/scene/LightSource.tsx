@@ -1,42 +1,37 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { createGlowMaterial, createShaftMaterial } from "./materials";
+import { useEffect, useMemo, useRef } from "react";
+import type { Mesh, ShaderMaterial } from "three";
+import { useFrame } from "@react-three/fiber";
+import { createGlowMaterial } from "./materials";
 import type { Palette } from "./palette";
-import { RENDER_ORDER, STREAM, toWorld, toWorldY } from "./streamSpec";
+import { CORE_Y, RENDER_ORDER, STREAM, toWorld, toWorldY } from "./streamSpec";
 import { Billboard } from "./Billboard";
+import { pulseFlare, pulseUniforms } from "./corePulse";
 
-/** White light source at the top of the stream: core, cyan halo, light shaft. Plus the emitter glow at the bottom. */
+/**
+ * Emitter glow at the bottom of the well, where the beam ends in the core.
+ * The top of the beam has no source: it comes down from above the page
+ * (STREAM.beamTop).
+ */
 export function LightSource({ palette }: { palette: Palette }) {
-  const { source, halo, shaft } = STREAM.light;
   const { emitter } = STREAM;
+  // Own color copy: it is tinted per frame and must not touch the palette.
+  const material = useMemo(() => createGlowMaterial(palette["vex-cyan"].clone(), 0.35, 2.2), [palette]);
+  useEffect(() => () => material.dispose(), [material]);
 
-  const materials = useMemo(
-    () => ({
-      halo: createGlowMaterial(palette["vex-cyan"], 0.38, 2.0),
-      source: createGlowMaterial(palette.light, 1.1, 2.6),
-      shaft: createShaftMaterial(palette.ice, 0.22),
-      emitter: createGlowMaterial(palette["vex-cyan"], 0.35, 2.2),
-    }),
-    [palette],
-  );
-  useEffect(
-    () => () => Object.values(materials).forEach((m) => m.dispose()),
-    [materials],
-  );
+  // Follows the core beat: flares with each pulse, tints pink on Enter Core hover.
+  const mesh = useRef<Mesh>(null);
+  useFrame(() => {
+    if (!mesh.current) return;
+    const { uniforms } = mesh.current.material as ShaderMaterial;
+    uniforms.uIntensity!.value = 0.16 + 0.5 * pulseFlare(pulseUniforms.uPulse.value);
+    uniforms.uColor!.value.copy(palette["vex-cyan"]).lerp(palette["dusk-pink"], pulseUniforms.uBoost.value);
+  });
 
   return (
     <Billboard>
-      <mesh renderOrder={RENDER_ORDER.beam} position={[0, toWorldY(halo.cy), -0.01]} material={materials.halo}>
-        <planeGeometry args={[toWorld(halo.w), toWorld(halo.h)]} />
-      </mesh>
-      <mesh renderOrder={RENDER_ORDER.beam} position={[0, toWorldY(shaft.top + shaft.h / 2), 0]} material={materials.shaft}>
-        <planeGeometry args={[toWorld(shaft.w), toWorld(shaft.h)]} />
-      </mesh>
-      <mesh renderOrder={RENDER_ORDER.beam} position={[0, toWorldY(source.cy), 0.01]} material={materials.source}>
-        <planeGeometry args={[toWorld(source.w), toWorld(source.h)]} />
-      </mesh>
-      <mesh renderOrder={RENDER_ORDER.beam} position={[0, toWorldY(emitter.cy), 0]} material={materials.emitter}>
+      <mesh ref={mesh} renderOrder={RENDER_ORDER.beam} position={[0, toWorldY(CORE_Y), 0]} material={material}>
         <planeGeometry args={[toWorld(emitter.glowW), toWorld(emitter.glowH)]} />
       </mesh>
     </Billboard>

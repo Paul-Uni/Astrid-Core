@@ -11,6 +11,10 @@ import { Beam } from "./Beam";
 import { CameraRig } from "./CameraRig";
 import { Rings } from "./Rings";
 import { Fragments } from "./Fragments";
+import { EmitterFloor } from "./EmitterFloor";
+import { FloorPillars } from "./FloorPillars";
+import { CoreLock } from "./CoreLock";
+import { CoreHeartbeat } from "./CoreHeartbeat";
 import { Effects } from "./Effects";
 
 /** Time used for the single still frame under reduced motion (particles spread out, not bunched at t = 0). */
@@ -62,9 +66,13 @@ export default function Stage() {
         fallback={null}
         onCreated={() => setReady(true)}
       >
+        <CoreHeartbeat still={still} />
         <CameraRig scale={scale} still={still} />
         <Sky palette={palette} scale={scale} />
         <LightSource palette={palette} />
+        <EmitterFloor palette={palette} />
+        <FloorPillars palette={palette} scale={scale} still={still} stillTime={STILL_TIME} />
+        <CoreLock palette={palette} />
         <Rings palette={palette} still={still} stillTime={STILL_TIME} />
         <Fragments
           palette={palette}
