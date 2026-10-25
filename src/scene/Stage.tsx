@@ -6,6 +6,8 @@ import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { readPalette } from "./palette";
 import { MOBILE_BREAKPOINT, MOBILE_SCALE } from "./streamSpec";
 import { Sky } from "./Sky";
+import { Silhouettes } from "./Silhouettes";
+import { Dust } from "./Dust";
 import { LightSource } from "./LightSource";
 import { Beam } from "./Beam";
 import { CameraRig } from "./CameraRig";
@@ -71,6 +73,8 @@ export default function Stage() {
         <CalmZones />
         <CameraRig scale={scale} still={still} />
         <Sky palette={palette} scale={scale} />
+        <Silhouettes palette={palette} scale={scale} still={still} mobile={isMobile} />
+        <Dust palette={palette} scale={scale} still={still} mobile={isMobile} />
         <LightSource palette={palette} />
         <EmitterFloor palette={palette} />
         <OrbitRing palette={palette} still={still} />

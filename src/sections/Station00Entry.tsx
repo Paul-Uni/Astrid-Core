@@ -24,8 +24,9 @@ export function Station00Entry() {
           className="flex max-w-[29rem] flex-col gap-7 p-8"
           style={{ position: "absolute", left: "5.5rem", top: "10.5rem" }}
           aria-labelledby="entry-h1"
+          data-power-style="boot"
         >
-          <StatusChip>Open to Working Student roles · C# / .NET</StatusChip>
+          <StatusChip>Open to internships & working student roles · software, data, AI</StatusChip>
 
           <SectionLabel index={0} name="Entry Point" />
 
@@ -46,8 +47,14 @@ export function Station00Entry() {
             style={{ color: "var(--color-ice)" }}
           >
             Computer science student at Ruhr University Bochum, focused on
-            C#/.NET development. I build apps, tools and my own data core:
-            Astrid. Scroll, and the camera takes you along.
+            C#/.NET development and Artificial Intelligence. I build apps, tools and my own data core:
+            Astrid.
+          </p>
+          <p
+            className="font-mono text-mono-data lowercase"
+            style={{ color: "var(--color-dusk-pink)" }}
+          >
+            ↕ scroll, and explore the panels below.
           </p>
 
           <div className="flex flex-wrap items-start gap-4">

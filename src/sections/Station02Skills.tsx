@@ -17,7 +17,7 @@ const CLUSTERS: readonly Cluster[] = [
   {
     index: "01",
     title: "Languages & frameworks",
-    chips: ["C#", ".NET", ".NET MAUI", "Python", "Java", "JavaScript", "TypeScript", "React", "Unity"],
+    chips: ["Python", "C#", ".NET", "Java", "JavaScript", "TypeScript", "React", "Unity"],
     pos: { left: "50.6875rem", top: "13.0625rem" },
     width: "27.5rem",
   },
@@ -71,6 +71,7 @@ export function Station02Skills() {
         {CLUSTERS.map((c) => (
           <GlassPanel
             key={c.index}
+            tether
             className="flex flex-col gap-3.5 p-6"
             style={{
               position: "absolute",

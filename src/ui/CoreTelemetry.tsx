@@ -35,6 +35,7 @@ export function CoreTelemetry() {
       blur="light"
       className="flex flex-col gap-2.5 px-4.5 py-4"
       aria-label="Core telemetry (decorative)"
+      data-power-style="boot"
     >
       <p
         className="font-mono text-mono-label uppercase"

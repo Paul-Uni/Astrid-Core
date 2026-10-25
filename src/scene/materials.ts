@@ -1,7 +1,8 @@
 import { CORE_PULSE, pulseFlareGLSL, type pulseUniforms } from "./corePulse";
 import { calmGLSL, calmUniforms } from "./calmZones";
 import { endUniforms } from "./endBlend";
-import { AdditiveBlending, Color, DoubleSide, ShaderMaterial, Vector2, Vector3 } from "three";
+import { STREAM } from "./streamSpec";
+import { AdditiveBlending, Color, DoubleSide, ShaderMaterial, Vector2, Vector3, Vector4 } from "three";
 
 /**
  * Shader materials for the stream. All colors come in as uniforms from the
@@ -89,6 +90,149 @@ export function createSkyMaterial(colors: {
       }
     `,
   });
+}
+
+/**
+ * Distant silhouettes (STREAM.silhouettes): full-screen pass right after the
+ * sky. Per layer, a periodic 1D skyline from hashed columns (no textures),
+ * blended over the sky as a faint dark tint: dusk-pink roof rims and a rim
+ * on the side facing the beam where a building steps down. Far layers are
+ * drawn first so nearer ones cover them. Depth sits just in front of the sky, so every scene object
+ * stays in front.
+ *
+ * Ground (04 → 05): `uRim` is the floor's far edge on screen, an ellipse
+ * (center x, y, half width, half height, px; written by Silhouettes). Once
+ * it rises above a layer's base line the skyline stands on it, nothing is
+ * drawn below it, and a haze glows along it. `uSink` (0..1) lowers every
+ * building into that edge one block at a time, each column a little later
+ * than the next, with an ice flash on the roof of a column while it sinks.
+ */
+export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; duskPink: Color; ice: Color }) {
+  const S = STREAM.silhouettes;
+  const f = (x: number) => x.toFixed(4);
+  const heights = S.layers
+    .map((l, i) => {
+      const n = columns(l);
+      return /* glsl */ `
+        float height${i}(float c) {
+          c = mod(c, ${f(n)});
+          float g = floor(c / ${f(l.group)});
+          float local = c - g * ${f(l.group)};
+          float seed = ${f(i * 17.31)};
+          float h = mix(${f(l.minH)}, ${f(l.maxH)}, pow(hash(g + seed), 1.6));
+          if (hash(g * 3.7 + seed) < ${f(l.tower)}) h += ${f(l.towerH)};
+          if (hash(g * 5.3 + seed) < ${f(l.gap)}) h = ${f(l.minH)} * 0.4;
+          bool edge = local < 0.5 || local > ${f(l.group - 1.5)};
+          if (edge && hash(c * 1.9 + seed) < 0.5) h -= ${f(l.step)};
+          h = floor(h / ${f(l.step)}) * ${f(l.step)};
+          // Sinking: each column starts a little later and goes down whole steps.
+          float s = clamp((uSink - hash(c * 7.7 + seed) * ${f(S.sink.spread)}) / ${f(1 - S.sink.spread)}, 0.0, 1.0);
+          sinking = s * (1.0 - s) * 4.0;
+          h = max(h - floor(s * (h / ${f(l.step)} + 1.0)) * ${f(l.step)}, 0.0);
+          return h * uScale;
+        }
+      `;
+    })
+    .join("");
+  const layers = S.layers
+    .map((l, i) => {
+      const n = columns(l);
+      return /* glsl */ `
+        {
+          float colW = ${f((360 * l.pan) / n)} * uScale;
+          float x = px.x + uTheta * ${f(l.pan)} * uScale;
+          float cf = x / colW;
+          float c = floor(cf);
+          float h = height${i}(c);
+          float flash = sinking;
+          float base = min(mix(${f(l.horizon[0])}, ${f(l.horizon[1])}, uProgress) * uResolution.y, ground);
+          float roof = base - h;
+          float d = px.y - roof; // px below the roofline
+          float inside = smoothstep(-0.75, 0.75, d) * (h > 0.5 ? 1.0 : 0.0);
+          float a = ${f(l.dark)} * uBoost * mix(1.0, ${f(S.base)}, smoothstep(0.0, ${f(l.fade)} * uScale, d));
+          float rim = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, abs(d))) * (h > 0.5 ? 1.0 : 0.0);
+
+          // Side facing the beam, where the next building toward the center is lower.
+          float toward = px.x < uResolution.x * 0.5 ? 1.0 : -1.0;
+          float hn = height${i}(c + toward);
+          float edgeDist = (toward > 0.0 ? 1.0 - fract(cf) : fract(cf)) * colW;
+          float side = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, edgeDist)) * step(0.0, d) * step(px.y, base - hn)
+            * (1.0 - smoothstep(0.0, ${f(S.sideFade)} * uScale, d));
+          rim = max(rim, side) * ${f(S.rim)};
+
+          vec3 lc = mix(shade, mix(uDusk, uIce, flash), rim / max(a * inside + rim, 1e-3));
+          float la = max(a * inside, rim * (1.0 + flash));
+          la *= 1.0 - smoothstep(ground - ${f(S.ground.fade)} * uScale, ground, px.y); // nothing below the floor's edge
+          pc = lc * la + pc * (1.0 - la); // premultiplied "over": nearer layers cover farther ones
+          alpha = la + alpha * (1.0 - la);
+        }
+      `;
+    })
+    .join("");
+  return new ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    uniforms: {
+      ...endUniforms,
+      ...calmUniforms,
+      uVoid: { value: colors.void },
+      uIndigo: { value: colors.indigo },
+      uDusk: { value: colors.duskPink },
+      uIce: { value: colors.ice },
+      uResolution: { value: new Vector2(1440, 900) },
+      uDpr: { value: 1 },
+      uScale: { value: 1 },
+      uBoost: { value: 1 },
+      uTheta: { value: 0 },
+      uProgress: { value: 0 },
+      uSink: { value: 0 },
+      uRim: { value: new Vector4(0, 1e5, 1, 0) },
+    },
+    vertexShader: /* glsl */ `
+      void main() {
+        gl_Position = vec4(position.xy, 0.9998, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uVoid, uIndigo, uDusk, uIce;
+      uniform vec2 uResolution;
+      uniform vec4 uRim;
+      uniform float uDpr, uScale, uBoost, uTheta, uProgress, uSink, uEnd;
+      ${calmGLSL}
+      float hash(float n) { return fract(sin(n * 12.9898 + 4.1414) * 43758.5453); }
+      float sinking; // 0..1..0 while the column last measured is going down
+      ${heights}
+      void main() {
+        vec2 px = vec2(gl_FragCoord.x, uResolution.y * uDpr - gl_FragCoord.y) / uDpr; // CSS px, y down
+        // Floor's far edge above this pixel column (far away when it isn't on screen).
+        float t = (px.x - uRim.x) / uRim.z;
+        float ground = abs(t) < 1.0 ? uRim.y - uRim.w * sqrt(1.0 - t * t) : 1e5;
+        vec3 shade = mix(uVoid, uIndigo, 0.35);
+        vec3 pc = vec3(0.0);
+        float alpha = 0.0;
+        ${layers}
+
+        // Haze glowing along the floor's edge, under the skyline.
+        float above = ground - px.y;
+        float haze = ${f(S.ground.haze)} * exp(-abs(above) / (${f(S.ground.hazePx)} * uScale)) * (ground < 1e4 ? 1.0 : 0.0);
+        haze *= mix(1.0, 0.25, step(above, 0.0)) * (1.0 - uEnd); // thinner over the floor itself; gone at the dark end
+        pc = pc + uDusk * haze * (1.0 - alpha);
+        alpha = alpha + haze * (1.0 - alpha);
+
+        if (alpha < 0.002) discard;
+        vec3 col = pc / alpha;
+        alpha *= (1.0 - ${f(S.calm)} * calmMask()) * (1.0 - ${f(S.endFade)} * uEnd);
+        gl_FragColor = vec4(col, alpha);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+/** Whole columns per orbit, and a whole number of buildings, so a silhouette row wraps seamlessly. */
+function columns(l: (typeof STREAM.silhouettes.layers)[number]) {
+  return Math.max(l.group, Math.round((360 * l.pan) / l.col / l.group) * l.group);
 }
 
 /** Soft elliptical glow sprite (emitter glow). */
@@ -575,6 +719,73 @@ export function createLockShadowMaterial(
         float disc = exp(-sq(r / r0)) * 0.25;
         float k = (band + disc) * (0.32 + 0.1 * (1.0 - uLift) + 0.35 * pulseFlare(uPulse));
         gl_FragColor = vec4(mix(uRest, uHover, uBoost) * k, 1.0);
+        #include <colorspace_fragment>
+      }
+    `,
+  });
+}
+
+/**
+ * Dust and data specks (STREAM.dust): screen-space points in three parallax
+ * layers. Per point: `aSeed` (x, y in a tile slightly larger than the
+ * screen, phase, glint 0/1) and `aLayer`. Each layer moves with the page
+ * scroll and the orbit at its own rate and drifts up slowly, wrapping
+ * around the tile. Additive; depth just in front of the sky, so every scene
+ * object stays in front.
+ */
+export function createDustMaterial(colors: { ice: Color; cyan: Color }) {
+  const D = STREAM.dust;
+  const f = (x: number) => x.toFixed(4);
+  const v3 = (pick: (l: (typeof D.layers)[number]) => number) => `vec3(${D.layers.map((l) => f(pick(l))).join(", ")})`;
+  return new ShaderMaterial({
+    ...additive,
+    depthTest: true,
+    uniforms: {
+      ...endUniforms,
+      ...calmUniforms,
+      uIce: { value: colors.ice },
+      uCyan: { value: colors.cyan },
+      uResolution: { value: new Vector2(1440, 900) },
+      uDpr: { value: 1 },
+      uScale: { value: 1 },
+      uScroll: { value: 0 },
+      uTheta: { value: 0 },
+      uTime: { value: 0 },
+    },
+    vertexShader: /* glsl */ `
+      uniform vec2 uResolution;
+      uniform float uDpr, uScale, uScroll, uTheta, uTime;
+      attribute vec4 aSeed;
+      attribute float aLayer;
+      varying float vAlpha;
+      varying float vGlint;
+      void main() {
+        vec3 layer = vec3(step(aLayer, 0.5), step(0.5, aLayer) * step(aLayer, 1.5), step(1.5, aLayer));
+        vec2 tile = uResolution * 1.2;
+        vec2 move = vec2(
+          -uTheta * dot(layer, ${v3((l) => l.pan)}),
+          -uScroll * dot(layer, ${v3((l) => l.speed)}) - uTime * dot(layer, ${v3((l) => l.drift)})
+        ) * vec2(uScale, 1.0);
+        vec2 p = mod(aSeed.xy * tile + move, tile) - (tile - uResolution) * 0.5; // CSS px, y down
+        float glint = aSeed.w * pow(max(0.0, sin(uTime * ${f(D.glint.rate)} + aSeed.z * 6.2831)), ${f(D.glint.sharp)});
+        float nearBeam = 1.0 - smoothstep(0.0, ${f(D.glint.near)} * uScale, abs(p.x - uResolution.x * 0.5));
+        vGlint = glint * mix(0.6, 1.0, nearBeam);
+        vAlpha = dot(layer, ${v3((l) => l.alpha)}) * (1.0 + vGlint * ${f(D.glint.boost)});
+        gl_PointSize = dot(layer, ${v3((l) => l.size)}) * uScale * uDpr * (1.0 + vGlint);
+        gl_Position = vec4(p.x / uResolution.x * 2.0 - 1.0, 1.0 - p.y / uResolution.y * 2.0, 0.9997, 1.0);
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      uniform vec3 uIce, uCyan;
+      uniform float uEnd;
+      varying float vAlpha;
+      varying float vGlint;
+      ${calmGLSL}
+      void main() {
+        vec2 q = gl_PointCoord - 0.5;
+        float soft = 1.0 - smoothstep(0.2, 0.5, length(q));
+        float a = vAlpha * soft * (1.0 - ${f(D.calm)} * calmMask()) * mix(1.0, ${f(D.end)}, uEnd);
+        gl_FragColor = vec4(mix(uIce, uCyan, min(vGlint, 1.0)) * a, 1.0);
         #include <colorspace_fragment>
       }
     `,

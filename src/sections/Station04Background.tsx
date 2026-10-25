@@ -27,7 +27,7 @@ const ENTRIES: readonly Entry[] = [
     dateRange: "2025 — 2026",
     title: "Simulation lab & research",
     org: "Ruhr University Bochum",
-    body: "Built the RUB campus in RoadRunner as a driving environment for LiDAR agents. Literature review on emotion representations in LLMs.",
+    body: "Built the RUB campus in RoadRunner as a driving environment for LiDAR agents. Literature review on emotion representations in LLMs, drawing on interpretability research and RLHF.",
     pos: { left: "6.3125rem", top: "18.75rem" },
   },
   {
@@ -81,6 +81,7 @@ export function Station04Background() {
         {ENTRIES.map((e) => (
           <GlassPanel
             key={e.title + e.dateRange}
+            tether={{ now: e.current }}
             className="flex w-[25rem] flex-col gap-2 p-5.5"
             style={{ position: "absolute", left: e.pos.left, top: e.pos.top }}
           >

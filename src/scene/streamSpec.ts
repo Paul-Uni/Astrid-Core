@@ -95,6 +95,73 @@ export const STREAM = {
       keyhole: { radius: 17, slot: 40, slotTop: 11, slotBottom: 20 },
     },
   },
+  /**
+   * Dust and data specks: tiny points drifting in three depth layers
+   * (`layers`: share of the `count`, size px, opacity, page-scroll
+   * parallax `speed`, orbit pan `pan` px/deg, upward `drift` px/s), drawn
+   * just in front of the sky and silhouettes, behind every scene object.
+   * Ice colored; a `glint.share` of them flash vex-cyan now and then
+   * (`glint.rate` rad/s, `glint.sharp` = how brief the flash), brighter
+   * within `glint.near` px of the beam. Calm zones dim them by `calm`; at
+   * the dark end they keep `end` of their opacity. Phones get
+   * `count.mobile`. Under reduced motion they hold still.
+   */
+  dust: {
+    count: { desktop: 260, mobile: 120 },
+    layers: [
+      { share: 0.5, size: 1.3, alpha: 0.34, speed: 0.12, pan: 1.5, drift: 2 },
+      { share: 0.32, size: 1.8, alpha: 0.48, speed: 0.28, pan: 3.5, drift: 4 },
+      { share: 0.18, size: 2.5, alpha: 0.6, speed: 0.5, pan: 6, drift: 7 },
+    ],
+    glint: { share: 0.18, rate: 0.7, sharp: 14, near: 220, boost: 2.2 },
+    calm: 0.7,
+    end: 0.45,
+  },
+  /**
+   * Distant silhouettes (docs/references/vex-landscape): three layers of
+   * blocky skyline far behind the stream, barely darker than the sky, drawn
+   * right after it in screen space (Silhouettes.tsx). Each layer is a row of
+   * columns `col` px wide; columns group into buildings of `group` columns
+   * with a height between `minH` and `maxH` px (in `step` px steps, edge
+   * columns sometimes one step lower, a `tower` share standing `towerH`
+   * taller, a `gap` share sunk low). The row wraps once around the orbit and
+   * pans `pan` px per degree as the camera circles, so near layers slide
+   * faster. Its base line sits at `horizon[0]` (share of the screen height
+   * from the top) at station 00 and rises to `horizon[1]` at 05, so the
+   * skyline climbs into view as you descend.
+   *
+   * Color: void/indigo at `dark` opacity over the sky, thinning to `base` ×
+   * that `fade` px below the roofline, so feet dissolve into the haze. Roof
+   * edges catch a dusk-pink backlight (`rim` strength, `rimPx` px), and so
+   * does a building's side facing the beam where its neighbor toward the
+   * center is lower (fading over `sideFade` px down). Calm zones thin them
+   * by `calm`. Phones tint `mobileBoost` × darker, since the
+   * shapes are smaller there.
+   *
+   * 04 → 05 (the floor rises into view): the skyline stands on the floor's
+   * far edge (`ground.r` px from the axis, projected to screen), nothing is
+   * drawn below it, and a dusk haze glows along it (`ground.haze`, `hazePx`
+   * px). From page progress `sink.from` to `sink.to` every building sinks
+   * into that edge one block at a time, each column delayed by up to
+   * `sink.spread` of the run, its roof flashing ice while it goes. At 05
+   * the rest fades by `endFade` with the dark end mood.
+   */
+  silhouettes: {
+    layers: [
+      { col: 34, group: 3, step: 14, minH: 70, maxH: 260, tower: 0.16, towerH: 140, gap: 0.12, pan: 6, horizon: [1.12, 0.7], dark: 0.26, fade: 320 },
+      { col: 50, group: 3, step: 20, minH: 50, maxH: 320, tower: 0.14, towerH: 180, gap: 0.15, pan: 9, horizon: [1.3, 0.86], dark: 0.38, fade: 280 },
+      { col: 72, group: 2, step: 28, minH: 30, maxH: 380, tower: 0.12, towerH: 220, gap: 0.2, pan: 13, horizon: [1.55, 1.02], dark: 0.5, fade: 240 },
+    ],
+    base: 0.45,
+    rim: 0.16,
+    rimPx: 1.5,
+    sideFade: 90,
+    calm: 0.6,
+    mobileBoost: 1.35,
+    ground: { r: 1150, fade: 4, haze: 0.32, hazePx: 30 },
+    sink: { from: 0.87, to: 0.985, spread: 0.55 },
+    endFade: 0.35,
+  },
 } as const;
 
 /** Figma y of the core: the bottom of the emitter's gravity well (off screen), where the beam ends. */

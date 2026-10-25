@@ -53,3 +53,7 @@ Thumbs.db
 # Figma source files (private)
 *.fig
 Figma w hero (not image)/
+
+# Personal / local files
+Resume_Paul_Onyeikedi.pdf
+.claude/settings.local.json

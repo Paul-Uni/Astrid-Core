@@ -11,9 +11,10 @@ import { GlassPanel } from "./GlassPanel";
  */
 export function PhotoFrame({
   caption = "subject: paul onyeikedi · cs @ rub",
-}: { caption?: string }) {
+  tether,
+}: { caption?: string; tether?: boolean }) {
   return (
-    <GlassPanel className="flex w-[18.75rem] flex-col gap-4 p-4">
+    <GlassPanel className="flex w-[18.75rem] flex-col gap-4 p-4" tether={tether || undefined}>
       <div
         role="img"
         className="relative flex h-[20.9375rem] w-[16.75rem] items-center justify-center overflow-hidden bg-indigo"

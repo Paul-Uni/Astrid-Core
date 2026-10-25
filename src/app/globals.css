@@ -163,6 +163,208 @@
     );
 }
 
+/* ---------- Panel power-on (PanelPowerOn) ----------
+   Each glass panel switches on like an old CRT the first time it scrolls
+   into view, quick and see-through at first: a dot opens to a soft line
+   across the middle, the line opens to the full panel as it firms up,
+   scanlines flicker once and fade; the content glitches for 0.4s with a
+   true RGB split (ChromaticFilters: red and green/blue channels shifted
+   apart), cutting between offsets that shrink to nothing. The content is
+   readable after ~0.1s. Only while <html data-power> is set (armed before
+   first paint; never under reduced motion). Fill mode "backwards" so
+   nothing lingers after the animation ends. */
+
+html[data-power] [data-panel]:not([data-power-on]) {
+  opacity: 0;
+}
+
+html[data-power] [data-panel][data-power-on] {
+  animation: crt-on 180ms linear backwards;
+  animation-delay: var(--power-delay, 0ms);
+}
+
+html[data-power] [data-panel][data-power-on] > * {
+  animation: crt-content 400ms linear backwards;
+  animation-delay: calc(var(--power-delay, 0ms) + 70ms);
+}
+
+html[data-power] [data-panel][data-power-on]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      transparent calc(50% - 1px),
+      color-mix(in srgb, var(--color-ice) 55%, transparent) calc(50% - 1px),
+      color-mix(in srgb, var(--color-ice) 55%, transparent) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-ice) 6%, transparent) 0 1px,
+      transparent 1px 3px
+    );
+  animation: crt-glow 280ms linear backwards;
+  animation-delay: var(--power-delay, 0ms);
+}
+
+@keyframes crt-on {
+  0% {
+    clip-path: inset(50% 50% 50% 50%);
+    opacity: 0.35;
+    animation-timing-function: var(--ease-out);
+  }
+  35% {
+    clip-path: inset(calc(50% - 1px) 0 calc(50% - 1px) 0);
+    animation-timing-function: var(--ease-out);
+  }
+  100% {
+    clip-path: inset(0);
+    opacity: 1;
+  }
+}
+
+@keyframes crt-glow {
+  0% { opacity: 0.7; }
+  35% { opacity: 0.7; }
+  55% { opacity: 0.2; }
+  65% { opacity: 0.4; }
+  100% { opacity: 0; }
+}
+
+@keyframes crt-content {
+  0% { opacity: 0; filter: url(#ca-1); animation-timing-function: steps(1, end); }
+  12% { opacity: 0.7; filter: url(#ca-2); animation-timing-function: steps(1, end); }
+  26% { opacity: 1; filter: url(#ca-3); animation-timing-function: steps(1, end); }
+  42% { filter: url(#ca-1); animation-timing-function: steps(1, end); }
+  58% { filter: url(#ca-4); animation-timing-function: steps(1, end); }
+  76% { filter: url(#ca-5); animation-timing-function: steps(1, end); }
+  92% { filter: none; opacity: 1; }
+  100% { filter: none; opacity: 1; }
+}
+
+/* Station 00 panels ([data-power-style="boot"]) power on at page load,
+   while the scene starts and fonts swap in, so they get their own boot:
+   opacity and transform only (composited, smooth under load), a soft
+   scan band sweeping down once, no clip or text fringe. PanelPowerOn
+   starts it once the stage is ready. */
+
+html[data-power] [data-panel][data-power-style="boot"][data-power-on] {
+  animation: crt-boot 320ms var(--ease-out) backwards;
+  animation-delay: var(--power-delay, 0ms);
+  clip-path: inset(0);
+}
+
+html[data-power] [data-panel][data-power-style="boot"][data-power-on] > * {
+  animation: crt-boot-content 260ms var(--ease-out) backwards;
+  animation-delay: calc(var(--power-delay, 0ms) + 90ms);
+}
+
+html[data-power] [data-panel][data-power-style="boot"][data-power-on]::after {
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--color-ice) 12%, transparent) 70%,
+    color-mix(in srgb, var(--color-ice) 35%, transparent) 98%,
+    transparent
+  );
+  animation: crt-boot-scan 520ms var(--ease-out) backwards;
+  animation-delay: calc(var(--power-delay, 0ms) + 40ms);
+}
+
+@keyframes crt-boot {
+  from {
+    opacity: 0;
+    transform: scale(0.985, 0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes crt-boot-content {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes crt-boot-scan {
+  from {
+    opacity: 1;
+    transform: translateY(-100%);
+  }
+  80% { opacity: 1; }
+  to {
+    opacity: 0;
+    transform: translateY(250%);
+  }
+}
+
+/* ---------- Tethers (chrome/Tethers) ----------
+   Circuit traces from tethered panels to diamond nodes on the beam. Off
+   until their panel powers on; then the trace draws from the beam out to
+   the panel and one light pulse runs along it. Dusk-pink for "now". */
+
+.tether {
+  --tether-color: var(--color-vex-cyan);
+}
+.tether[data-now] {
+  --tether-color: var(--color-dusk-pink);
+}
+.tether-trace,
+.tether-pulse {
+  fill: none;
+  stroke: var(--tether-color);
+  stroke-width: 1;
+}
+.tether-trace {
+  stroke-opacity: 0.6;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 420ms var(--ease-out) var(--tether-delay, 0ms);
+}
+.tether[data-on] .tether-trace {
+  stroke-dashoffset: 0;
+}
+.tether-pulse {
+  stroke: var(--color-ice);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 0.08 2;
+  stroke-dashoffset: 0.08;
+  opacity: 0;
+}
+.tether[data-on] .tether-pulse {
+  animation: tether-pulse 700ms var(--ease-out) var(--tether-delay, 0ms) backwards;
+}
+.tether-node {
+  fill: var(--color-void);
+  stroke: var(--tether-color);
+  stroke-width: 1.5;
+}
+.tether-term {
+  fill: var(--tether-color);
+}
+.tether-node,
+.tether-term {
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out) var(--tether-delay, 0ms);
+}
+.tether[data-on] :is(.tether-node, .tether-term) {
+  opacity: 1;
+}
+
+@keyframes tether-pulse {
+  0% { stroke-dashoffset: 0.08; opacity: 1; }
+  85% { opacity: 1; }
+  100% { stroke-dashoffset: -1; opacity: 0; }
+}
+
 /* ---------- Reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {

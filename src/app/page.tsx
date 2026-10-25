@@ -8,7 +8,9 @@ import { Station03Projects } from "@/sections/Station03Projects";
 import { Station04Background } from "@/sections/Station04Background";
 import { Station05Contact } from "@/sections/Station05Contact";
 import { ScrollProgressDriver } from "./ScrollProgressDriver";
+import { PanelPowerOn } from "./PanelPowerOn";
 import { StageLoader } from "@/scene/StageLoader";
+import { Tethers } from "@/chrome/Tethers";
 
 export default function Home() {
   return (
@@ -20,8 +22,10 @@ export default function Home() {
         className="fixed inset-0 -z-10 sky-gradient"
       />
       <StageLoader />
+      <Tethers />
 
       <ScrollProgressDriver />
+      <PanelPowerOn />
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-14 focus:top-4 focus:z-50 focus:border focus:border-vex-cyan focus:bg-void focus:px-4 focus:py-2 focus:font-mono focus:text-mono-label focus:uppercase focus:text-ice"

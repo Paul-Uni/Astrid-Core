@@ -34,8 +34,8 @@ export function Station05Contact() {
             className="font-sans text-body-m"
             style={{ color: "var(--color-ice)" }}
           >
-            Open to working student roles in C#/.NET. Available now, 8–10
-            hours a week, more during semester breaks.
+            Open to internships and working student roles in software,
+            data or AI. Available now, full-time during university breaks.
           </p>
 
           <a

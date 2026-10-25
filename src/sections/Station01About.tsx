@@ -20,6 +20,7 @@ export function Station01About() {
         <GlassPanel
           className="flex w-[32.5rem] flex-col gap-5 p-8"
           style={{ position: "absolute", left: "5rem", top: "9.375rem" }}
+          tether
           aria-labelledby="about-h2"
         >
           <SectionLabel index={1} name="About" />
@@ -38,7 +39,7 @@ export function Station01About() {
             className="font-sans text-body-m"
             style={{ color: "var(--color-ice)" }}
           >
-            {"I’m Paul, a computer science student at Ruhr University Bochum, now in my 5th semester. In a Scrum team project I built a C# AI backend and connected it to a React/TypeScript editor. Outside of lectures I keep building my own things: games in Unity and Python, a .NET MAUI desktop app, and Astrid, an AI assistant that runs fully local on my own machine."}
+            {"I’m Paul, a computer science student at Ruhr University Bochum, now in my 5th semester. In a Scrum team project I built a C# AI backend and connected it to a React/TypeScript editor. Outside of lectures I keep building my own things: games in Unity and Python, and Astrid, an AI assistant that runs fully local on my own machine."}
           </p>
 
           <hr
@@ -55,7 +56,7 @@ export function Station01About() {
 
         {/* Photo frame — Figma pos (958, 232) */}
         <div className="absolute left-[59.875rem] top-[14.5rem]">
-          <PhotoFrame />
+          <PhotoFrame tether />
         </div>
       </div>
     </Section>

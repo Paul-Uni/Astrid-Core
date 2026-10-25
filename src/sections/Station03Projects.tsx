@@ -7,8 +7,9 @@ import { STATIONS } from "@/tokens/stations";
 
 /**
  * Station 03 — Projects. Translated from Figma node 47:3936.
- * Three projects, exactly, per PRODUCT.md: Astrid (featured, left),
- * CAM (right lower), astridcore.dev (right upper).
+ * Three project cards per PRODUCT.md: Astrid (featured, left), CAM (right
+ * lower), astridcore.dev (right upper); the header names the smaller
+ * game projects in one "also built" line.
  */
 export function Station03Projects() {
   const station = STATIONS[3]!;
@@ -29,12 +30,17 @@ export function Station03Projects() {
           >
             {"What I’ve built."}
           </h2>
+          <p className="font-mono text-mono-data lowercase" style={{ color: "var(--color-ice)" }}>
+            <span style={{ color: "var(--color-vex-cyan)" }}>{"// also built · "}</span>
+            games in Unity/C# shipped as WebGL builds, and a 2D game in Python/Pygame
+          </p>
         </GlassPanel>
 
         {/* astridcore.dev — right upper, Figma (829, 111), width 440 */}
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-6"
           style={{ position: "absolute", left: "51.8125rem", top: "6.9375rem" }}
+          tether
         >
           <MetaLine>{"// NODE 03 · LIVE · YOU ARE HERE"}</MetaLine>
           <h3
@@ -47,16 +53,17 @@ export function Station03Projects() {
             This site: a scroll-driven data stream with a login-gated private
             side.
           </Body>
-          <Chips chips={["Figma", "Next.js", "Three.js", "Cloudflare"]} />
+          <Chips chips={["Figma", "Next.js", "Three.js", "Cloudflare","Claude Code"]} />
           <FooterLink tone="dusk" href="https://github.com/Paul-Uni/Astrid-Core">
             ↳ behind the scenes · source on GitHub ↗
           </FooterLink>
         </GlassPanel>
 
-        {/* Astrid featured — left, Figma (120, 332), width 470 */}
+        {/* Astrid featured — left, Figma (120, 332), width 470; at y 344 to stay clear of the taller header */}
         <GlassPanel
           className="flex w-[29.375rem] flex-col gap-4 p-7"
-          style={{ position: "absolute", left: "7.5rem", top: "20.75rem" }}
+          style={{ position: "absolute", left: "7.5rem", top: "21.5rem" }}
+          tether
           aria-labelledby="astrid-h3"
         >
           <MetaLine>{"// NODE 01 · IN DEVELOPMENT · SINCE 2026"}</MetaLine>
@@ -79,11 +86,8 @@ export function Station03Projects() {
             Modular skill system, so new abilities plug in as separate modules.
           </Bullet>
           <Chips chips={["Python", "Ollama", "Local LLMs", "Tool calling"]} />
-          <FooterLink tone="dusk">
-            ↳ the core this site is named after
-          </FooterLink>
-          <FooterLink tone="cyan" href="https://github.com/Paul-Uni/Astrid">
-            ↳ source on GitHub ↗
+          <FooterLink tone="dusk" href="https://github.com/Paul-Uni/Astrid">
+            ↳ this site’s namesake · source on GitHub ↗
           </FooterLink>
         </GlassPanel>
 

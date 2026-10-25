@@ -3,7 +3,7 @@
 import { useScrollStore } from "@/store/useScrollStore";
 
 /**
- * Bottom-left HUD. "↓ SCROLL TO ORBIT" + "cam.θ · depth · core: astrid".
+ * Bottom-left HUD, one line each: cam.θ, depth, core, then "↓ SCROLL TO ORBIT".
  * θ and depth count live while scrolling via the Zustand store.
  * At station 5, "CORE REACHED" replaces the scroll prompt (DESIGN.md).
  */
@@ -16,10 +16,15 @@ export function Hud() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-6 left-14 z-40 flex items-center gap-4 max-md:left-5 max-md:bottom-5"
+      className="pointer-events-none fixed bottom-6 left-6 z-40 flex flex-col items-start gap-1.5 max-md:left-5 max-md:bottom-5"
       role="status"
       aria-live="polite"
     >
+      <span aria-hidden className="flex flex-col gap-0.5 font-mono text-mono-data text-ice/75 max-md:hidden">
+        <span>{`cam.θ ${theta.toString().padStart(3, "0")}°`}</span>
+        <span>{`depth ${depth.toString().padStart(4, "0")}`}</span>
+        <span>core: astrid</span>
+      </span>
       <span className="font-mono text-mono-label uppercase text-ice/85">
         {atCore ? (
           <>
@@ -33,11 +38,6 @@ export function Hud() {
         ) : (
           "↓ SCROLL TO ORBIT"
         )}
-      </span>
-      <span aria-hidden className="font-mono text-mono-data text-ice/75">
-        {`cam.θ ${theta.toString().padStart(3, "0")}° · depth ${depth
-          .toString()
-          .padStart(4, "0")} · core: astrid`}
       </span>
     </div>
   );

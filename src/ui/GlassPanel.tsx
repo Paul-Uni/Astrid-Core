@@ -7,6 +7,8 @@ type GlassPanelProps = HTMLAttributes<HTMLDivElement> & {
   brackets?: boolean;
   /** Blur radius for backdrop. CoreTelemetry uses a lighter 6px blur. */
   blur?: "default" | "light";
+  /** Tie this panel to the stream with a circuit tether (chrome/Tethers); `now` tints it dusk-pink. */
+  tether?: { now?: boolean } | true;
 };
 
 /**
@@ -15,11 +17,14 @@ type GlassPanelProps = HTMLAttributes<HTMLDivElement> & {
  * - --panel-border: 1px vex-cyan at 0.22
  * - --panel-blur: blur(18px) (default) or 6px (light)
  * - 14px cyan corner brackets on all four corners
+ * - optionally tethered to the beam (Tethers)
+ * - powers on like a CRT the first time it scrolls into view (PanelPowerOn)
  */
 export function GlassPanel({
   children,
   brackets = true,
   blur = "default",
+  tether,
   className = "",
   style,
   ...rest
@@ -33,6 +38,9 @@ export function GlassPanel({
   return (
     <div
       data-calm
+      data-panel
+      data-tether={tether ? "" : undefined}
+      data-tether-now={tether && tether !== true && tether.now ? "" : undefined}
       {...rest}
       className={className}
       style={{
