@@ -60,14 +60,17 @@ export const STREAM = {
     cy: 4440,
     glowW: 420,
     glowH: 160,
-    floor: { radius: 1600, gridCell: 40 },
+    /** Sheet radius px; the skyline stands on this edge (Silhouettes), so the grid fades out exactly there. */
+    floor: { radius: 1150, gridCell: 40 },
     /** depth * r0^2 / (r^2 + r0^2): flat sheet, then a sharp drop near r0 = 40px. */
     well: { depth: 900, radius: 40, drop: 70 },
     /**
      * Orbit ring (Figma 49:5916): a dashed dusk-pink circle on the sheet
      * around the well, `r` px, dashes `dash`/`gap` px. The three social
      * nodes (DOM) ride on it at `nodes` angles (deg, 0 = screen right,
-     * 90 = straight back, seen from the station 05 camera).
+     * 90 = straight back, seen from the station 05 camera). Phones use
+     * `mobile` (Figma m05): a ring 150px wide on screen at MOBILE_SCALE,
+     * Discord left, GitHub right, LinkedIn in front under the lock.
      */
     orbit: {
       r: 330,
@@ -75,6 +78,7 @@ export const STREAM = {
       gap: 7,
       opacity: 0.75,
       nodes: { discord: 158, github: 52, linkedin: -14 },
+      mobile: { r: 273, nodes: { discord: 180, github: 0, linkedin: -90 } },
     },
     /**
      * Core lock, a flat padlock shape (Figma px) lying over the well's
@@ -139,7 +143,7 @@ export const STREAM = {
    * shapes are smaller there.
    *
    * 04 → 05 (the floor rises into view): the skyline stands on the floor's
-   * far edge (`ground.r` px from the axis, projected to screen), nothing is
+   * far edge (`emitter.floor.radius` px from the axis, projected to screen), nothing is
    * drawn below it, and a dusk haze glows along it (`ground.haze`, `hazePx`
    * px). From page progress `sink.from` to `sink.to` every building sinks
    * into that edge one block at a time, each column delayed by up to
@@ -158,7 +162,7 @@ export const STREAM = {
     sideFade: 90,
     calm: 0.6,
     mobileBoost: 1.35,
-    ground: { r: 1150, fade: 4, haze: 0.32, hazePx: 30 },
+    ground: { fade: 4, haze: 0.32, hazePx: 30 },
     sink: { from: 0.87, to: 0.985, spread: 0.55 },
     endFade: 0.35,
   },

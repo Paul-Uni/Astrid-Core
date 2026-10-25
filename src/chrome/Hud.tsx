@@ -6,6 +6,7 @@ import { useScrollStore } from "@/store/useScrollStore";
  * Bottom-left HUD, one line each: cam.θ, depth, core, then "↓ SCROLL TO ORBIT".
  * θ and depth count live while scrolling via the Zustand store.
  * At station 5, "CORE REACHED" replaces the scroll prompt (DESIGN.md).
+ * Hidden on phones: there the two lines sit in the page at 00 and 05.
  */
 export function Hud() {
   const station = useScrollStore((s) => s.station);
@@ -16,7 +17,7 @@ export function Hud() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-6 left-6 z-40 flex flex-col items-start gap-1.5 max-md:left-5 max-md:bottom-5"
+      className="pointer-events-none fixed bottom-6 left-6 z-40 flex flex-col items-start gap-1.5 max-md:hidden"
       role="status"
       aria-live="polite"
     >

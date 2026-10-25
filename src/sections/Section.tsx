@@ -16,8 +16,10 @@ type SectionProps = {
  * (56.25rem tall), so a rail jump lands with the viewport showing exactly
  * that frame. Panel positions inside already carry the nav clearance.
  * Height is rem, not vh, so CTRL+zoom never opens a gap between sections.
+ * On phones (Figma "02 Mobile") the station is one stacked column and its
+ * content sets the height.
  */
-export function Section({ station, children, heightClass = "min-h-[56.25rem]" }: SectionProps) {
+export function Section({ station, children, heightClass = "min-h-[56.25rem] max-md:min-h-0" }: SectionProps) {
   return (
     <section
       id={station.slug}

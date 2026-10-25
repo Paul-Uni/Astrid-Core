@@ -350,12 +350,21 @@ html[data-power] [data-panel][data-power-style="boot"][data-power-on]::after {
 .tether-term {
   fill: var(--tether-color);
 }
+/* Phones: dashed link down the beam between stacked panels */
+.tether-link {
+  fill: none;
+  stroke: var(--tether-color);
+  stroke-opacity: 0.6;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
 .tether-node,
-.tether-term {
+.tether-term,
+.tether-link {
   opacity: 0;
   transition: opacity 200ms var(--ease-out) var(--tether-delay, 0ms);
 }
-.tether[data-on] :is(.tether-node, .tether-term) {
+.tether[data-on] :is(.tether-node, .tether-term, .tether-link) {
   opacity: 1;
 }
 
@@ -363,6 +372,30 @@ html[data-power] [data-panel][data-power-style="boot"][data-power-on]::after {
   0% { stroke-dashoffset: 0.08; opacity: 1; }
   85% { opacity: 1; }
   100% { stroke-dashoffset: -1; opacity: 0; }
+}
+
+/* ---------- Mobile station layout (ui/mobilePlacement) ----------
+   Phones (< 768px, Figma page "02 Mobile"): each station is one column.
+   Blocks marked data-m leave their desktop absolute position and take the
+   mobile offset, width, padding and order from their --m-* variables.
+   !important beats the desktop position set inline. */
+
+@media (max-width: 47.9375rem) {
+  [data-m] {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    order: var(--m-order, 0);
+    align-self: flex-start;
+    margin-left: var(--m-x, 0);
+    max-width: none !important;
+  }
+  [data-m][style*="--m-w"] {
+    width: var(--m-w) !important;
+  }
+  [data-m][style*="--m-p"] {
+    padding: var(--m-p) !important;
+  }
 }
 
 /* ---------- Reduced motion ---------- */

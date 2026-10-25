@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-/** Narrower screens: panels cover the beam, so no tethers. */
+/** Desktop: side tethers. Narrower screens: panels cover the beam, so links run along it between panels. */
 const DESKTOP = "(min-width: 768px)";
 
 /** Geometry, CSS px. */
@@ -20,7 +20,20 @@ const G = {
   node: 6,
   /** Square terminal half size, on the panel edge. */
   term: 3,
+  /** Phones: diamond half size on a panel edge, smallest gap that gets a link. */
+  linkNode: 5,
+  linkMinGap: 16,
 } as const;
+
+/** Phones: dashed link on the beam from one stacked panel down to the next. */
+type Link = {
+  upper: HTMLElement;
+  lower: HTMLElement;
+  g: SVGGElement;
+  line: SVGPathElement;
+  top: SVGPathElement;
+  bottom: SVGPathElement;
+};
 
 type Tether = {
   power: HTMLElement;
@@ -48,6 +61,11 @@ function svgEl<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<strin
  * panel (PanelPowerOn): the trace draws from the beam out to the panel and
  * one light pulse runs along it. Without the power-on (reduced motion),
  * tethers are simply there.
+ *
+ * Phones (Figma "02 Mobile"): panels stack over the beam, so instead each
+ * station's panels are linked down the beam: a short dashed line in the
+ * gap between two panels, with a diamond node on each panel edge. A link
+ * switches on with the lower panel.
  */
 export function Tethers() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -71,17 +89,32 @@ export function Tethers() {
       return { power, g, trace, pulse, node, term };
     });
 
+    const diamond = (x: number, y: number, n: number) => `M${x},${y - n} L${x + n},${y} L${x},${y + n} L${x - n},${y} Z`;
+    const links: Link[] = [...document.querySelectorAll<HTMLElement>("[data-station]")].flatMap((section) => {
+      const panels = [...section.querySelectorAll<HTMLElement>("[data-panel]")];
+      return panels.slice(1).map((lower, i) => {
+        const g = svgEl("g", { class: "tether" });
+        const line = svgEl("path", { class: "tether-link" });
+        const top = svgEl("path", { class: "tether-node" });
+        const bottom = svgEl("path", { class: "tether-node" });
+        g.append(line, top, bottom);
+        svg.append(g);
+        return { upper: panels[i]!, lower, g, line, top, bottom };
+      });
+    });
+
     let frame = 0;
     const update = () => {
       frame = 0;
-      if (!desktop.matches) {
-        svg.style.display = "none";
-        return;
-      }
-      svg.style.display = "";
       const W = document.documentElement.clientWidth;
       const H = window.innerHeight;
       const bx = W / 2;
+      if (!desktop.matches) {
+        for (const t of tethers) t.g.style.display = "none";
+        updateLinks(bx, H);
+        return;
+      }
+      for (const l of links) l.g.style.display = "none";
       for (const t of tethers) {
         const r = t.power.getBoundingClientRect();
         const left = r.left + r.width / 2 < bx;
@@ -115,6 +148,28 @@ export function Tethers() {
         }
       }
     };
+    // Phones: stacked panels are re-sorted by their on-screen position, since flex `order` can differ from the DOM order.
+    const updateLinks = (bx: number, H: number) => {
+      for (const l of links) {
+        const a = l.upper.getBoundingClientRect();
+        const b = l.lower.getBoundingClientRect();
+        const [up, low, lowEl] = a.top <= b.top ? [a, b, l.lower] : [b, a, l.upper];
+        const y1 = up.bottom;
+        const y2 = low.top;
+        const visible = y2 - y1 >= G.linkMinGap && y2 > -G.linkNode && y1 < H + G.linkNode;
+        l.g.style.display = visible ? "" : "none";
+        if (!visible) continue;
+        l.line.setAttribute("d", `M${bx},${y1 + G.linkNode} L${bx},${y2 - G.linkNode}`);
+        l.top.setAttribute("d", diamond(bx, y1, G.linkNode));
+        l.bottom.setAttribute("d", diamond(bx, y2, G.linkNode));
+        if (!("on" in l.g.dataset) && (!armed || lowEl.hasAttribute("data-power-on"))) {
+          const delay = parseFloat(lowEl.style.getPropertyValue("--power-delay")) || 0;
+          l.g.style.setProperty("--tether-delay", `${delay + 120}ms`);
+          l.g.dataset.on = "";
+        }
+      }
+    };
+
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
@@ -126,6 +181,7 @@ export function Tethers() {
     // Panels power on from IntersectionObserver callbacks, sometimes after scrolling stops.
     const mo = new MutationObserver(schedule);
     for (const t of tethers) mo.observe(t.power, { attributes: true, attributeFilter: ["data-power-on"] });
+    for (const l of links) mo.observe(l.lower, { attributes: true, attributeFilter: ["data-power-on"] });
 
     return () => {
       cancelAnimationFrame(frame);
@@ -134,6 +190,7 @@ export function Tethers() {
       desktop.removeEventListener("change", schedule);
       mo.disconnect();
       for (const t of tethers) t.g.remove();
+      for (const l of links) l.g.remove();
     };
   }, []);
 

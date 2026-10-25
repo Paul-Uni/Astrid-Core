@@ -574,7 +574,8 @@ export function createFloorMaterial(
         float r = length(p);
         vec2 sc = gl_FragCoord.xy / uViewport;
         float edge = smoothstep(0.0, 0.2, sc.x) * smoothstep(1.0, 0.8, sc.x) * smoothstep(0.0, 0.04, sc.y);
-        float rim = (1.0 - smoothstep(uRadius * 0.5, uRadius, r)) * edge;
+        // Gone by the sheet's edge, where the skyline stands: no grid over the buildings.
+        float rim = (1.0 - smoothstep(uRadius * 0.7, uRadius, r)) * edge;
 
         // Spacetime grid: square cells turned 45 deg, brighter down the throat.
         vec2 q = vec2(p.x + p.y, p.y - p.x) * 0.70710678 / uCell;

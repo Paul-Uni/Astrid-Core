@@ -12,10 +12,10 @@ const SEGMENTS = 256;
 const DEG = Math.PI / 180;
 /** Sheet sag at r px from the axis (same curve as the floor), so the ring lies on the sheet. */
 const sag = (r: number) => (well.depth * well.radius ** 2) / (r * r + well.radius ** 2);
-const RING_Y = toWorldY(cy + well.drop + sag(orbit.r));
+const ringY = (r: number) => toWorldY(cy + well.drop + sag(r));
 
-/** Point on the ring at `deg` (0 = screen right, 90 = straight back, as seen from the last station's camera). */
-function ringPoint(deg: number, out: Vector3) {
+/** Point on a ring of radius `radius` px at `deg` (0 = screen right, 90 = straight back, as seen from the last station's camera). */
+function ringPoint(deg: number, radius: number, out: Vector3) {
   const t = STATIONS[STATIONS.length - 1]!.theta * DEG;
   const a = deg * DEG;
   // Station 05 view in world xz: screen right and "behind the axis".
@@ -23,8 +23,8 @@ function ringPoint(deg: number, out: Vector3) {
   const rz = -Math.sin(t);
   const bx = -Math.sin(t);
   const bz = -Math.cos(t);
-  const r = toWorld(orbit.r);
-  return out.set((Math.cos(a) * rx + Math.sin(a) * bx) * r, RING_Y, (Math.cos(a) * rz + Math.sin(a) * bz) * r);
+  const r = toWorld(radius);
+  return out.set((Math.cos(a) * rx + Math.sin(a) * bx) * r, ringY(radius), (Math.cos(a) * rz + Math.sin(a) * bz) * r);
 }
 
 type NodeId = keyof typeof orbit.nodes;
@@ -38,17 +38,19 @@ const NODE_IDS = Object.keys(orbit.nodes) as NodeId[];
  * on the ring, so they turn smoothly with the camera instead of lagging a
  * frame behind the page scroll. Off screen they are hidden.
  * Under reduced motion the camera stays put, so the nodes keep their
- * Figma positions from the markup.
+ * Figma positions from the markup. Phones use the smaller `orbit.mobile`.
  */
-export function OrbitRing({ palette, still }: { palette: Palette; still: boolean }) {
+export function OrbitRing({ palette, still, mobile }: { palette: Palette; still: boolean; mobile: boolean }) {
+  const radius = mobile ? orbit.mobile.r : orbit.r;
+  const angles = mobile ? orbit.mobile.nodes : orbit.nodes;
   const geometry = useMemo(() => {
+    const y = ringY(radius);
     const pts = Array.from({ length: SEGMENTS + 1 }, (_, i) => {
       const a = (i / SEGMENTS) * Math.PI * 2;
-      return new Vector3(Math.cos(a) * toWorld(orbit.r), RING_Y, Math.sin(a) * toWorld(orbit.r));
+      return new Vector3(Math.cos(a) * toWorld(radius), y, Math.sin(a) * toWorld(radius));
     });
-    const g = new BufferGeometry().setFromPoints(pts);
-    return g;
-  }, []);
+    return new BufferGeometry().setFromPoints(pts);
+  }, [radius]);
   const material = useMemo(
     () =>
       new LineDashedMaterial({
@@ -64,7 +66,7 @@ export function OrbitRing({ palette, still }: { palette: Palette; still: boolean
   useEffect(() => () => geometry.dispose(), [geometry]);
   useEffect(() => () => material.dispose(), [material]);
 
-  const points = useMemo(() => NODE_IDS.map((id) => ringPoint(orbit.nodes[id], new Vector3())), []);
+  const points = useMemo(() => NODE_IDS.map((id) => ringPoint(angles[id], radius, new Vector3())), [angles, radius]);
   const screen = useMemo(() => new Vector3(), []);
   useFrame(({ camera, size }) => {
     if (still) return;

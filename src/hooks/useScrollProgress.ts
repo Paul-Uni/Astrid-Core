@@ -16,11 +16,13 @@ function measureStreamScale(contactLanding: number) {
   const rect = anchor.getBoundingClientRect();
   const anchorDocY = rect.top + window.scrollY + rect.height / 2;
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  const end = Math.min(contactLanding, maxScroll);
+  const mobile = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches;
+  // Desktop: line up at the contact landing (a rail jump shows the lock in place).
+  // Phones: station 05 is taller than the screen and Enter Core sits at its
+  // bottom, so line up at the end of the page, where it is read.
+  const end = mobile ? maxScroll : Math.min(contactLanding, maxScroll);
   if (end <= 0) return;
-  const scale = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`).matches
-    ? MOBILE_SCALE
-    : 1;
+  const scale = mobile ? MOBILE_SCALE : 1;
   // At scrollY = end the emitter must sit at the anchor's viewport y.
   // The camera looks at the viewport center; stream distances from there
   // appear × scale × cos(pitch) on screen.

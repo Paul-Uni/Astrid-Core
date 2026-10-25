@@ -15,17 +15,18 @@ export function Station03Projects() {
   const station = STATIONS[3]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem] max-md:flex max-md:flex-col max-md:gap-10 max-md:pt-[6.75rem] max-md:pb-16">
         {/* Header — Figma (80, 138), width 470 */}
         <GlassPanel
           className="flex w-[29.375rem] flex-col gap-3 p-7"
           style={{ position: "absolute", left: "5rem", top: "8.625rem" }}
+          m={{ x: 20, w: 330, p: 24 }}
           aria-labelledby="projects-h2"
         >
           <SectionLabel index={3} name="Projects" />
           <h2
             id="projects-h2"
-            className="font-pixel text-display-l"
+            className="font-pixel text-display-l max-md:text-display-m"
             style={{ color: "var(--color-ice)" }}
           >
             {"What I’ve built."}
@@ -40,11 +41,12 @@ export function Station03Projects() {
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-6"
           style={{ position: "absolute", left: "51.8125rem", top: "6.9375rem" }}
+          m={{ x: 16, w: 340, p: 22, order: 1 }}
           tether
         >
           <MetaLine>{"// NODE 03 · LIVE · YOU ARE HERE"}</MetaLine>
           <h3
-            className="font-pixel text-heading-m"
+            className="font-pixel text-heading-m max-md:text-heading-s"
             style={{ color: "var(--color-ice)" }}
           >
             astridcore.dev
@@ -63,13 +65,14 @@ export function Station03Projects() {
         <GlassPanel
           className="flex w-[29.375rem] flex-col gap-4 p-7"
           style={{ position: "absolute", left: "7.5rem", top: "21.5rem" }}
+          m={{ x: 12, w: 346, p: 22 }}
           tether
           aria-labelledby="astrid-h3"
         >
           <MetaLine>{"// NODE 01 · IN DEVELOPMENT · SINCE 2026"}</MetaLine>
           <h3
             id="astrid-h3"
-            className="font-pixel text-display-l"
+            className="font-pixel text-display-l max-md:text-display-m"
             style={{ color: "var(--color-ice)" }}
           >
             Astrid
@@ -96,13 +99,14 @@ export function Station03Projects() {
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-6"
           style={{ position: "absolute", left: "50.5rem", top: "26rem" }}
+          m={{ x: 26, w: 334, p: 22 }}
           aria-labelledby="cam-h3"
         >
           <MetaLine>{"// NODE 02 · TEAM PROJECT · 2025"}</MetaLine>
           <div className="flex w-full flex-col gap-1">
             <h3
               id="cam-h3"
-              className="font-pixel text-heading-m"
+              className="font-pixel text-heading-m max-md:text-heading-s"
               style={{ color: "var(--color-ice)" }}
             >
               CAM

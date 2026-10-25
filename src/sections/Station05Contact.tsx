@@ -15,17 +15,18 @@ export function Station05Contact() {
   const station = STATIONS[5]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem] max-md:flex max-md:flex-col max-md:gap-10 max-md:pt-[6.75rem] max-md:pb-16 max-md:min-h-[60.625rem]">
         {/* Contact panel — Figma (84, 150), width 500, padding 32 */}
         <GlassPanel
-          className="flex w-[31.25rem] flex-col gap-5 p-8"
+          className="flex w-[31.25rem] flex-col gap-5 p-8 max-md:gap-4"
           style={{ position: "absolute", left: "5.25rem", top: "9.375rem" }}
+          m={{ x: 20, w: 340, p: 24 }}
           aria-labelledby="contact-h2"
         >
           <SectionLabel index={5} name="Contact" />
           <h2
             id="contact-h2"
-            className="font-pixel text-display-l"
+            className="font-pixel text-display-l max-md:text-display-m"
             style={{ color: "var(--color-ice)" }}
           >
             {"Let’s talk."}
@@ -40,24 +41,24 @@ export function Station05Contact() {
 
           <a
             href="mailto:ponyeikedi@gmail.com"
-            className="group flex w-full items-center gap-4 py-3"
+            className="group flex w-full items-center gap-4 py-3 max-md:gap-3"
             style={{ borderBottom: "1px solid var(--color-vex-cyan)" }}
           >
             <span
-              className="font-mono text-mono-label uppercase"
-              style={{ color: "var(--color-vex-cyan)", minWidth: "6rem" }}
+              className="min-w-24 font-mono text-mono-label uppercase max-md:min-w-0"
+              style={{ color: "var(--color-vex-cyan)" }}
             >
               email
             </span>
             <span
-              className="flex-1 font-sans text-body-l"
+              className="min-w-0 flex-1 font-sans text-body-l max-md:text-body-m"
               style={{ color: "var(--color-ice)" }}
             >
               ponyeikedi@gmail.com
             </span>
             <span
               aria-hidden
-              className="font-sans text-body-l"
+              className="font-sans text-body-l max-md:text-body-m"
               style={{ color: "var(--color-vex-cyan)" }}
             >
               ↗
@@ -83,14 +84,25 @@ export function Station05Contact() {
           />
         </div>
 
-        {/* Core Gate: a point at the well's mouth (720, 610); the floor lines up with it, the throat drops below */}
-        <div className="absolute left-[45rem] top-[38.125rem]">
+        {/* Core Gate: a point at the well's mouth (720, 610); the floor lines up with it, the throat drops below.
+            Phones (Figma m05): centered on the beam at y 636 */}
+        <div className="absolute left-[45rem] top-[38.125rem] max-md:left-1/2 max-md:top-[39.75rem]">
           <CoreGate href="#login" />
         </div>
 
-        {/* Footer — Figma (1028, 851) */}
+        {/* Phones: the HUD's CORE REACHED moves here, centered above the footer (Figma m05) */}
+        <p className="absolute left-1/2 top-[55.75rem] -translate-x-1/2 whitespace-nowrap font-mono text-mono-label uppercase text-ice/85 md:hidden">
+          <span
+            aria-hidden
+            className="mr-1.5 inline-block size-1.5 rounded-full align-middle"
+            style={{ backgroundColor: "var(--color-vex-cyan)", boxShadow: "var(--glow-cyan)" }}
+          />
+          Core reached
+        </p>
+
+        {/* Footer — Figma (1028, 851); phones: centered at the bottom (Figma m05) */}
         <p
-          className="absolute left-[64.25rem] top-[53.1875rem] font-mono text-mono-data uppercase"
+          className="absolute left-[64.25rem] top-[53.1875rem] font-mono text-mono-data uppercase max-md:left-1/2 max-md:top-[57.75rem] max-md:-translate-x-1/2 max-md:whitespace-nowrap"
           style={{ color: "var(--color-ice)" }}
         >
           © 2026 Paul Onyeikedi · astridcore.dev

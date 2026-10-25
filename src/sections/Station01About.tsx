@@ -2,6 +2,7 @@ import { GlassPanel } from "@/ui/GlassPanel";
 import { SectionLabel } from "@/ui/SectionLabel";
 import { PhotoFrame } from "@/ui/PhotoFrame";
 import { Section } from "./Section";
+import { mobilePlacement } from "@/ui/mobilePlacement";
 import { STATIONS } from "@/tokens/stations";
 
 const INTERESTS = ["AI & machine learning", "Game development", "Strength training"] as const;
@@ -15,11 +16,12 @@ export function Station01About() {
   const station = STATIONS[1]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem] max-md:flex max-md:flex-col max-md:gap-10 max-md:pt-[6.75rem] max-md:pb-16">
         {/* Profile panel — Figma pos (80, 150), width 520 */}
         <GlassPanel
-          className="flex w-[32.5rem] flex-col gap-5 p-8"
+          className="flex w-[32.5rem] flex-col gap-5 p-8 max-md:gap-4"
           style={{ position: "absolute", left: "5rem", top: "9.375rem" }}
+          m={{ x: 14, w: 346, p: 24 }}
           tether
           aria-labelledby="about-h2"
         >
@@ -27,7 +29,7 @@ export function Station01About() {
 
           <h2
             id="about-h2"
-            className="font-pixel text-display-l"
+            className="font-pixel text-display-l max-md:text-display-m"
             style={{ color: "var(--color-ice)" }}
           >
             {"Who’s behind"}
@@ -48,14 +50,14 @@ export function Station01About() {
             style={{ backgroundColor: "var(--color-vex-cyan)" }}
           />
 
-          <div className="flex flex-wrap items-start gap-8">
+          <div className="flex flex-wrap items-start gap-8 max-md:flex-nowrap max-md:gap-5">
             <FactsColumn label="Interests" items={INTERESTS} />
             <FactsColumn label="Languages" items={LANGUAGES} />
           </div>
         </GlassPanel>
 
-        {/* Photo frame — Figma pos (958, 232) */}
-        <div className="absolute left-[59.875rem] top-[14.5rem]">
+        {/* Photo frame — Figma pos (958, 232); on phones it comes first */}
+        <div className="absolute left-[59.875rem] top-[14.5rem]" {...mobilePlacement({ x: 40, order: -1 })}>
           <PhotoFrame tether />
         </div>
       </div>

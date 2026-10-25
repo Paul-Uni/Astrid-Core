@@ -11,7 +11,7 @@ import { useScrollStore } from "@/store/useScrollStore";
 const S = STREAM.silhouettes;
 const DEG = Math.PI / 180;
 const FLOOR_Y = toWorldY(STREAM.emitter.cy + STREAM.emitter.well.drop);
-const R = toWorld(S.ground.r);
+const R = toWorld(STREAM.emitter.floor.radius);
 const center = new Vector3();
 const far = new Vector3();
 const side = new Vector3();

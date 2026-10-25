@@ -40,7 +40,7 @@ export function OrbitRail() {
                 href={`#${station.slug}`}
                 aria-label={`Jump to station 0${station.id} ${station.label.toLowerCase()}`}
                 aria-current={isActive ? "location" : undefined}
-                className="flex items-center gap-3 py-0.5"
+                className="flex items-center gap-3 py-0.5 max-md:-m-2.5 max-md:p-2.5"
               >
                 {/* Label — visible only when active OR when the rail is hovered/focused */}
                 <span

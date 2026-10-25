@@ -77,7 +77,7 @@ export default function Stage() {
         <Dust palette={palette} scale={scale} still={still} mobile={isMobile} />
         <LightSource palette={palette} />
         <EmitterFloor palette={palette} />
-        <OrbitRing palette={palette} still={still} />
+        <OrbitRing palette={palette} still={still} mobile={isMobile} />
         <CoreLock palette={palette} still={still} stillTime={STILL_TIME} />
         <Rings palette={palette} still={still} stillTime={STILL_TIME} />
         <Fragments

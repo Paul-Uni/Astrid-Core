@@ -5,6 +5,7 @@ import { ButtonGhost } from "@/ui/ButtonGhost";
 import { ButtonCore } from "@/ui/ButtonCore";
 import { CoreTelemetry } from "@/ui/CoreTelemetry";
 import { Section } from "./Section";
+import { mobilePlacement } from "@/ui/mobilePlacement";
 import { STATIONS } from "@/tokens/stations";
 
 /**
@@ -18,11 +19,12 @@ export function Station00Entry() {
   const station = STATIONS[0]!;
   return (
     <Section station={station}>
-      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem]">
+      <div className="relative mx-auto h-full min-h-[56.25rem] w-full max-w-[90rem] max-md:flex max-md:flex-col max-md:gap-10 max-md:pt-[18.75rem] max-md:pb-16">
         {/* Intro panel — left side, Figma pos (88, 168) */}
         <GlassPanel
-          className="flex max-w-[29rem] flex-col gap-7 p-8"
+          className="flex max-w-[29rem] flex-col gap-7 p-8 max-md:gap-4"
           style={{ position: "absolute", left: "5.5rem", top: "10.5rem" }}
+          m={{ x: 20, w: 340, p: 24 }}
           aria-labelledby="entry-h1"
           data-power-style="boot"
         >
@@ -32,7 +34,7 @@ export function Station00Entry() {
 
           <h1
             id="entry-h1"
-            className="font-pixel text-display-l"
+            className="font-pixel text-display-l max-md:text-display-m"
             style={{ color: "var(--color-ice)" }}
           >
             {"Hi, I’m Paul."}
@@ -43,7 +45,7 @@ export function Station00Entry() {
           </h1>
 
           <p
-            className="font-sans text-body-l max-w-[25rem]"
+            className="font-sans text-body-l max-w-[25rem] max-md:text-body-m"
             style={{ color: "var(--color-ice)" }}
           >
             Computer science student at Ruhr University Bochum, focused on
@@ -57,19 +59,24 @@ export function Station00Entry() {
             ↕ scroll, and explore the panels below.
           </p>
 
-          <div className="flex flex-wrap items-start gap-4">
-            <ButtonGhost href="#projects">View projects</ButtonGhost>
-            <ButtonCore href="#login">
+          <div className="flex flex-wrap items-start gap-4 max-md:flex-col max-md:items-stretch max-md:gap-2.5">
+            <ButtonGhost href="#projects" className="max-md:justify-center">View projects</ButtonGhost>
+            <ButtonCore href="#login" className="max-md:justify-center">
               Enter Core
               <span aria-hidden>→</span>
             </ButtonCore>
           </div>
         </GlassPanel>
 
-        {/* Core Telemetry — right side, Figma pos (1136, 594) */}
-        <div className="absolute left-[71rem] top-[37.125rem]">
+        {/* Core Telemetry — right side, Figma pos (1136, 594); on phones compact below the intro */}
+        <div className="absolute left-[71rem] top-[37.125rem]" {...mobilePlacement({ x: 32 })}>
           <CoreTelemetry />
         </div>
+
+        {/* Phones: the HUD is reduced to this line at the end of 00 (DESIGN.md Mobile) */}
+        <p className="ml-5 font-mono text-mono-label uppercase text-ice/85 md:hidden">
+          ↓ Scroll to orbit
+        </p>
       </div>
     </Section>
   );
