@@ -32,6 +32,7 @@ export function GlassPanel({
   // at its intended coordinates.
   return (
     <div
+      data-calm
       {...rest}
       className={className}
       style={{

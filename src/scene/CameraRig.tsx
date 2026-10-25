@@ -3,7 +3,8 @@
 import { useFrame } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { useScrollStore } from "@/store/useScrollStore";
-import { CAMERA_PITCH, PX_PER_UNIT } from "./streamSpec";
+import { CAMERA_PITCH, PX_PER_UNIT, STREAM, toWorldY } from "./streamSpec";
+import { endBlend, endUniforms } from "./endBlend";
 
 const DEG = Math.PI / 180;
 
@@ -19,6 +20,10 @@ const DEG = Math.PI / 180;
  * Framing: the camera distance makes 1 world unit = 100 CSS px × scale at
  * the stream axis (beam exactly 88px wide on desktop). The top of the
  * viewport sits at stream depth `depthPx`.
+ *
+ * End of the descent (endBlend): the camera tilts down to STREAM.end.pitchDeg
+ * so the flat lock reads. The look-at point shifts so the Core Gate anchor
+ * (STREAM.emitter.cy) stays at the same spot on screen.
  */
 export function CameraRig({ scale, still }: { scale: number; still: boolean }) {
   useFrame(({ camera, size }) => {
@@ -31,12 +36,17 @@ export function CameraRig({ scale, still }: { scale: number; still: boolean }) {
     const pxPerUnit = PX_PER_UNIT * scale;
     const halfHeight = size.height / 2 / pxPerUnit;
     const distance = halfHeight / Math.tan((cam.fov * DEG) / 2);
-    const centerY = -depthPx / PX_PER_UNIT - halfHeight;
-    const flat = Math.cos(CAMERA_PITCH) * distance;
+    const end = endBlend(still ? 0 : thetaExact);
+    endUniforms.uEnd.value = end;
+    const pitch = CAMERA_PITCH + (STREAM.end.pitchDeg * DEG - CAMERA_PITCH) * end;
+    // Vertical offsets on screen scale with cos(pitch): keep the anchor's offset from the center.
+    const anchorY = toWorldY(STREAM.emitter.cy);
+    const centerY = anchorY - (anchorY - (-depthPx / PX_PER_UNIT - halfHeight)) * (Math.cos(CAMERA_PITCH) / Math.cos(pitch));
+    const flat = Math.cos(pitch) * distance;
 
     cam.position.set(
       Math.sin(theta) * flat,
-      centerY + Math.sin(CAMERA_PITCH) * distance,
+      centerY + Math.sin(pitch) * distance,
       Math.cos(theta) * flat,
     );
     cam.lookAt(0, centerY, 0);

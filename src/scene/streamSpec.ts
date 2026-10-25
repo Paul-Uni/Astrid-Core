@@ -33,11 +33,28 @@ export const STREAM = {
    */
   beamTop: { y: -400, fade: 520 },
   /**
+   * End of the descent (station 05): calm and dark, the core the only
+   * bright thing. Eases in between orbit `from` and `to` deg (endBlend.ts).
+   * The camera tilts down to `pitchDeg` so the flat lock reads; the anchor
+   * (Core Gate) stays put on screen. The floor grid fades from `floor.r0`
+   * px around the well to near-black (`floor.edge` left) at `floor.r1`, and
+   * darker still behind panels; `vignette` darkens the frame edges.
+   */
+  end: {
+    from: 255,
+    to: 300,
+    pitchDeg: 24,
+    floor: { r0: 180, r1: 720, edge: 0.1, calm: 0.85 },
+    vignette: { offset: 0.25, darkness: 0.75 },
+    /** Beam below the sheet: dims to `rest` over `px` down the throat, so Enter Core never sits on a bright line. */
+    throat: { px: 200, rest: 0.1 },
+  },
+  /**
    * Emitter at the bottom (References/"example lock"). y = cy is the level
    * the Core Gate anchor lines up with. The grid sheet lies `well.drop` px
    * lower and plunges into a narrow, very deep throat (`well.depth`) that
    * runs off the bottom of the screen; the core sits at its bottom (see
-   * CORE_Y). A glass padlock lies on the sheet over the throat's mouth.
+   * CORE_Y). A glass padlock hovers over the throat's mouth.
    */
   emitter: {
     cy: 4440,
@@ -47,37 +64,35 @@ export const STREAM = {
     /** depth * r0^2 / (r^2 + r0^2): flat sheet, then a sharp drop near r0 = 40px. */
     well: { depth: 900, radius: 40, drop: 70 },
     /**
-     * Core lock, a flat padlock shape (Figma px). Body: rounded rectangle.
-     * Shackle: an arch `bar` px wide standing `leg` px on the body's top
-     * edge. The keyhole's round part sits on the beam axis.
+     * Orbit ring (Figma 49:5916): a dashed dusk-pink circle on the sheet
+     * around the well, `r` px, dashes `dash`/`gap` px. The three social
+     * nodes (DOM) ride on it at `nodes` angles (deg, 0 = screen right,
+     * 90 = straight back, seen from the station 05 camera).
+     */
+    orbit: {
+      r: 330,
+      dash: 9,
+      gap: 7,
+      opacity: 0.75,
+      nodes: { discord: 158, github: 52, linkedin: -14 },
+    },
+    /**
+     * Core lock, a flat padlock shape (Figma px) lying over the well's
+     * mouth like a lid, hovering `hover` px above the sheet and bobbing
+     * ±`bob` px over `bobPeriod` s (still under reduced motion). Its soft
+     * shadow ring (`shadow`: radius, width, px) glows on the sheet below.
+     * Body: rounded rectangle. Shackle: an arch `bar` px wide standing
+     * `leg` px on the body's top edge. The keyhole's round part sits on
+     * the beam axis.
      */
     lock: {
+      hover: 35,
+      bob: 4,
+      bobPeriod: 4,
+      shadow: { r: 120, width: 26 },
       body: { w: 160, h: 130, radius: 22 },
       shackle: { radius: 50, bar: 20, leg: 24 },
       keyhole: { radius: 17, slot: 40, slotTop: 11, slotBottom: 20 },
-    },
-    /**
-     * Floor pillars (References/"Background inspo", "bg inspo 2"), all in
-     * grid cells (gridCell px). A symmetric layout, turned `layoutTurn` deg:
-     * four pillars at `inner.r`, four at `outer.r`, each a composed
-     * megastructure `height` cells tall. Floating modules hover on a ring
-     * between them at `floatLevels`, bobbing `bob` cells over `bobPeriod` s.
-     * `haze` (px above the floor): solids dissolve into the sky between start
-     * and end, scaffolds `scaffoldExtra` px later. `column` (CSS px from the
-     * screen center): parts behind the beam more than `columnFrom` px up,
-     * and everything between the camera and the beam, fade out around it.
-     */
-    pillars: {
-      /** Whole layout turned (deg) so at station 03 a pillar pair frames the beam instead of hiding behind it. */
-      layoutTurn: 22.5,
-      inner: { r: 14, size: 4, height: 26 },
-      outer: { r: 24, size: 5, height: 35 },
-      floatRing: 20,
-      floatLevels: [7, 14, 21] as const,
-      bob: 0.4,
-      bobPeriod: 16,
-      haze: { start: 1000, end: 1750, scaffoldExtra: 250 },
-      column: { inner: 140, outer: 340, columnFrom: 120 },
     },
   },
 } as const;

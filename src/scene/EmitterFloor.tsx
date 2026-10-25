@@ -48,7 +48,7 @@ function polarSheet(radius: number) {
 export function EmitterFloor({ palette }: { palette: Palette }) {
   const { floor, well, cy } = STREAM.emitter;
   const floorMaterial = useMemo(
-    () => createFloorMaterial({ cyan: palette["vex-cyan"], ice: palette.ice, dusk: palette["dusk-pink"] }, floor, well, pulseUniforms),
+    () => createFloorMaterial({ cyan: palette["vex-cyan"], ice: palette.ice, dusk: palette["dusk-pink"] }, floor, well, pulseUniforms, STREAM.end.floor),
     [palette, floor, well],
   );
   const geometry = useMemo(() => polarSheet(toWorld(floor.radius)), [floor.radius]);

@@ -26,6 +26,8 @@ export function Beam({ palette, still, stillTime }: { palette: Palette; still: b
         STREAM.beamTop.fade,
         bottomPx,
         pulseUniforms,
+        // Sheet level in px, up positive (the beam shader's py).
+        { sheetPx: -(STREAM.emitter.cy + STREAM.emitter.well.drop), ...STREAM.end.throat },
       ),
     [palette, bottomPx],
   );

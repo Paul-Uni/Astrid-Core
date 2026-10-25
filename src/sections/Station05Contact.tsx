@@ -8,8 +8,8 @@ import { STATIONS } from "@/tokens/stations";
 
 /**
  * Station 05 — Contact. Translated from Figma node 49:5916.
- * Contact panel left; three Social Nodes around the Core Gate, which sits
- * at the bottom of the emitter's gravity well; footer bottom-right.
+ * Contact panel left; three Social Nodes on the orbit ring around the Core
+ * Gate, which sits at the emitter's gravity well; footer bottom-right.
  */
 export function Station05Contact() {
   const station = STATIONS[5]!;
@@ -67,22 +67,15 @@ export function Station05Contact() {
           <ButtonGhost href="mailto:ponyeikedi@gmail.com">Email me</ButtonGhost>
         </GlassPanel>
 
-        {/* Social nodes — Figma positions */}
-        <div className="absolute left-[22.75rem] top-[35.5625rem]">
-          <SocialNode
-            platform="discord"
-            label="Discord · copy"
-            copyValue="paul_lauer"
-          />
+        {/* Social nodes ride on the WebGL orbit ring (scene/OrbitRing moves them each
+            frame). These Figma positions are the fallback without WebGL. */}
+        <div data-orbit-node="discord" className="absolute left-0 top-0" style={{ transform: "translate(22.75rem, 35.5625rem)" }}>
+          <SocialNode platform="discord" label="Discord · copy" copyValue="paul_lauer" />
         </div>
-        <div className="absolute left-[60.75rem] top-[30.625rem]">
-          <SocialNode
-            platform="github"
-            label="GitHub ↗"
-            href="https://github.com/Paul-Uni"
-          />
+        <div data-orbit-node="github" className="absolute left-0 top-0" style={{ transform: "translate(60.75rem, 30.625rem)" }}>
+          <SocialNode platform="github" label="GitHub ↗" href="https://github.com/Paul-Uni" />
         </div>
-        <div className="absolute left-[71.0625rem] top-[42.125rem]">
+        <div data-orbit-node="linkedin" className="absolute left-0 top-0" style={{ transform: "translate(71.0625rem, 42.125rem)" }}>
           <SocialNode
             platform="linkedin"
             label="LinkedIn ↗"

@@ -77,6 +77,7 @@ export function SocialNode({ platform, label, href, copyValue }: SocialNodeProps
   if (href) {
     return (
       <a
+        data-calm
         href={href}
         target="_blank"
         rel="noreferrer noopener"
@@ -89,6 +90,7 @@ export function SocialNode({ platform, label, href, copyValue }: SocialNodeProps
   }
   return (
     <button
+      data-calm
       type="button"
       onClick={handleCopy}
       aria-label={`${label} — copies ${copyValue} to clipboard`}

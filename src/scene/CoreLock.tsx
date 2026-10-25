@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { EdgesGeometry, Path, Shape, ShapeGeometry } from "three";
-import { createLockEdgeMaterial, createLockMaterial } from "./materials";
+import { useEffect, useMemo, useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { EdgesGeometry, type Group, type Mesh, Path, RingGeometry, type ShaderMaterial, Shape, ShapeGeometry } from "three";
+import { createLockEdgeMaterial, createLockMaterial, createLockShadowMaterial } from "./materials";
 import { pulseUniforms } from "./corePulse";
 import type { Palette } from "./palette";
 import { RENDER_ORDER, STREAM, toWorld, toWorldY } from "./streamSpec";
@@ -12,16 +13,16 @@ type LockSpec = typeof STREAM.emitter.lock;
 
 /** Draws after the floor, before the beam: its depth hides the beam below it, except through the keyhole. */
 const LOCK_ORDER = (RENDER_ORDER.back + RENDER_ORDER.beam) / 2;
+/** Keyhole sits this share of the body height above the body's center, like a real padlock. */
+const KEYHOLE_RAISE = 0.1;
+/** Lifts the lock 1px off the sheet so the two never z-fight. */
+const LIFT = 1;
 /**
  * Turn about the beam axis. The floor grid runs at 45° (createFloorMaterial),
  * so the lock snaps to the grid direction closest to the camera's angle at
  * the last station: its edges run along the grid lines, shackle away.
  */
 const FACING = ((Math.round((STATIONS[STATIONS.length - 1]!.theta - 45) / 90) * 90 + 45) * Math.PI) / 180;
-/** Keyhole sits this share of the body height above the body's center, like a real padlock. */
-const KEYHOLE_RAISE = 0.1;
-/** Lifts the lock 1px off the sheet so the two never z-fight. */
-const LIFT = 1;
 
 /** Keyhole outline: round top centered on the origin, tapered slot below it with a rounded foot. */
 function keyholePath({ radius, slot, slotTop, slotBottom }: LockSpec["keyhole"]) {
@@ -79,48 +80,66 @@ function lockShapes({ body, shackle, keyhole }: LockSpec) {
 
 /**
  * The Core lock (References/"example lock"): one flat padlock of
- * translucent dark glass lying on the spacetime sheet over the gravity well's
- * mouth, turned to match the floor grid, as if covering the hole.
- * The beam falls through its keyhole into the throat. Lit by the core
- * heartbeat (corePulse). Dark glass with a magenta-core edge; Enter Core
- * hover turns the edge vex-cyan (eased by the boost value). No motion of its own.
+ * translucent dark glass lying over the gravity well's mouth like a lid,
+ * hovering `lock.hover` px above the sheet with a slow bob, turned to match
+ * the floor grid. The beam drops through its keyhole into the throat. A soft
+ * glow ring on the sheet below is its shadow. Lit by the core heartbeat
+ * (corePulse). Ice / vex-cyan glass and edge; Enter Core hover turns the
+ * edge magenta (eased by the boost value).
  */
-export function CoreLock({ palette }: { palette: Palette }) {
+export function CoreLock({ palette, still, stillTime }: { palette: Palette; still: boolean; stillTime: number }) {
   const { lock, cy, well } = STREAM.emitter;
-  const { fill, edges } = useMemo(() => {
+  const { fill, edges, shadow } = useMemo(() => {
     const fill = new ShapeGeometry(lockShapes(lock), 24);
-    return { fill, edges: new EdgesGeometry(fill) };
+    const reach = lock.shadow.r + lock.shadow.width * 2;
+    return { fill, edges: new EdgesGeometry(fill), shadow: new RingGeometry(0, reach, 96, 1) };
   }, [lock]);
   const material = useMemo(
     () =>
       createLockMaterial(
-        { void: palette.void, locked: palette["magenta-core"], open: palette["vex-cyan"], ice: palette.ice },
+        { void: palette.void, rest: palette["vex-cyan"], hover: palette["magenta-core"], ice: palette.ice },
         pulseUniforms,
       ),
     [palette],
   );
   const edgeMaterial = useMemo(
-    () => createLockEdgeMaterial({ locked: palette["magenta-core"], open: palette["vex-cyan"], light: palette.light }, pulseUniforms),
+    () => createLockEdgeMaterial({ rest: palette["vex-cyan"], hover: palette["magenta-core"], light: palette.light }, pulseUniforms),
     [palette],
+  );
+  const shadowMaterial = useMemo(
+    () => createLockShadowMaterial({ rest: palette["vex-cyan"], hover: palette["magenta-core"] }, lock.shadow, pulseUniforms),
+    [palette, lock],
   );
   useEffect(
     () => () => {
       fill.dispose();
       edges.dispose();
+      shadow.dispose();
     },
-    [fill, edges],
+    [fill, edges, shadow],
   );
   useEffect(() => () => material.dispose(), [material]);
   useEffect(() => () => edgeMaterial.dispose(), [edgeMaterial]);
+  useEffect(() => () => shadowMaterial.dispose(), [shadowMaterial]);
+
+  // Bob: ±lock.bob px around the hover height; the shadow ring follows (brighter, tighter when lower).
+  const sheetY = toWorldY(cy + well.drop - LIFT);
+  const body = useRef<Group>(null);
+  const shadowMesh = useRef<Mesh>(null);
+  useFrame(({ clock }) => {
+    const t = still ? stillTime : clock.elapsedTime;
+    const s = still ? 0 : Math.sin((t * Math.PI * 2) / lock.bobPeriod);
+    if (body.current) body.current.position.y = sheetY + toWorld(lock.hover + lock.bob * s);
+    if (shadowMesh.current) (shadowMesh.current.material as ShaderMaterial).uniforms.uLift!.value = 0.5 + 0.5 * s;
+  });
 
   return (
-    <group
-      position={[0, toWorldY(cy + well.drop - LIFT), 0]}
-      rotation={[-Math.PI / 2, FACING, 0, "YXZ"]}
-      scale={toWorld(1)}
-    >
-      <mesh renderOrder={LOCK_ORDER} geometry={fill} material={material} />
-      <lineSegments renderOrder={LOCK_ORDER} geometry={edges} material={edgeMaterial} />
+    <group rotation={[0, FACING, 0]}>
+      <group ref={body} position={[0, sheetY + toWorld(lock.hover), 0]} rotation={[-Math.PI / 2, 0, 0]} scale={toWorld(1)}>
+        <mesh renderOrder={LOCK_ORDER} geometry={fill} material={material} />
+        <lineSegments renderOrder={LOCK_ORDER} geometry={edges} material={edgeMaterial} />
+      </group>
+      <mesh ref={shadowMesh} position={[0, sheetY, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={toWorld(1)} renderOrder={RENDER_ORDER.back} geometry={shadow} material={shadowMaterial} />
     </group>
   );
 }

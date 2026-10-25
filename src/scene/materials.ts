@@ -1,5 +1,7 @@
 import { CORE_PULSE, pulseFlareGLSL, type pulseUniforms } from "./corePulse";
-import { AdditiveBlending, Color, DoubleSide, NormalBlending, ShaderMaterial, Vector2, Vector3 } from "three";
+import { calmGLSL, calmUniforms } from "./calmZones";
+import { endUniforms } from "./endBlend";
+import { AdditiveBlending, Color, DoubleSide, ShaderMaterial, Vector2, Vector3 } from "three";
 
 /**
  * Shader materials for the stream. All colors come in as uniforms from the
@@ -24,7 +26,11 @@ const additive = {
   blending: AdditiveBlending,
 } as const;
 
-/** Full-screen sky: void → indigo (45%) → sky-mid (72%) → void, plus dusk haze around the beam. */
+/**
+ * Full-screen sky: void → indigo (45%) → sky-mid (72%) → void, plus dusk
+ * haze around the beam. At the end of the descent (uEnd) it goes dark: near
+ * void everywhere except a low magenta glow around the well (`uWell`, uv).
+ */
 export function createSkyMaterial(colors: {
   void: Color;
   indigo: Color;
@@ -43,6 +49,8 @@ export function createSkyMaterial(colors: {
       uMagenta: { value: colors.magenta },
       uResolution: { value: [1440, 900] },
       uHazeScale: { value: 1 },
+      uWell: { value: new Vector2(0.5, 0.75) },
+      ...endUniforms,
     },
     vertexShader: /* glsl */ `
       varying vec2 vUv;
@@ -53,8 +61,8 @@ export function createSkyMaterial(colors: {
     `,
     fragmentShader: /* glsl */ `
       uniform vec3 uVoid, uIndigo, uSkyMid, uDusk, uMagenta;
-      uniform vec2 uResolution;
-      uniform float uHazeScale;
+      uniform vec2 uResolution, uWell;
+      uniform float uHazeScale, uEnd;
       varying vec2 vUv;
       void main() {
         float t = 1.0 - vUv.y; // 0 top, 1 bottom
@@ -68,6 +76,13 @@ export function createSkyMaterial(colors: {
         float haze = exp(-dot(q, q));
         vec3 hazeColor = mix(uDusk, uMagenta, haze);
         c = mix(c, hazeColor, haze * 0.42);
+
+        // End of the descent: dark, lit only from the well.
+        vec2 w = (vUv - uWell) * uResolution / uHazeScale / vec2(420.0, 170.0);
+        float well = exp(-dot(w, w));
+        vec3 dark = mix(uVoid, uIndigo, 0.3 * (1.0 - t));
+        dark = mix(dark, mix(uSkyMid, uMagenta, well * 0.6), well * 0.6);
+        c = mix(c, dark, uEnd);
 
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
@@ -113,11 +128,13 @@ export function createBeamMaterial(
   topFadePx: number,
   bottomPx: number,
   pulse: typeof pulseUniforms,
+  throat: { sheetPx: number; px: number; rest: number },
 ) {
   return new ShaderMaterial({
     ...additive,
     uniforms: {
       ...pulse,
+      ...endUniforms,
       uDusk: { value: colors.dusk },
       uTime: { value: 0 },
       uCyan: { value: colors.cyan },
@@ -130,7 +147,7 @@ export function createBeamMaterial(
     },
     vertexShader: WORLD_VERTEX,
     fragmentShader: /* glsl */ `
-      uniform float uTime, uWidthPx, uTopPx, uTopFade, uBottomPx, uPulse, uBoost;
+      uniform float uTime, uWidthPx, uTopPx, uTopFade, uBottomPx, uPulse, uBoost, uEnd;
       uniform vec3 uCyan, uIce, uLight, uDusk;
       varying vec2 vUv;
       varying float vWorldY;
@@ -192,6 +209,9 @@ export function createBeamMaterial(
         // (sRGB output would otherwise turn tiny tails into a visible band).
         float window = 1.0 - smoothstep(uWidthPx * 0.3, uWidthPx * 0.5, ax);
         fade *= window;
+        // End of the descent: through the keyhole, the beam dims down the throat.
+        float throat = mix(${throat.rest.toFixed(3)}, 1.0, smoothstep(${(throat.sheetPx - throat.px).toFixed(1)}, ${throat.sheetPx.toFixed(1)}, py));
+        fade *= mix(1.0, throat, uEnd);
 
         // Core pulse, a "gulp": a bulge wider than the beam leaves the core,
         // rises ~1700px (out of the deep throat) while slowing down, and shrinks into the core line
@@ -359,12 +379,15 @@ export function createFloorMaterial(
   spec: { radius: number; gridCell: number },
   well: { depth: number; radius: number },
   pulse: typeof pulseUniforms,
+  end: { r0: number; r1: number; edge: number; calm: number },
 ) {
   return new ShaderMaterial({
     ...additive,
     side: DoubleSide,
     uniforms: {
       ...pulse,
+      ...endUniforms,
+      ...calmUniforms,
       uCyan: { value: colors.cyan },
       uIce: { value: colors.ice },
       uDusk: { value: colors.dusk },
@@ -388,11 +411,12 @@ export function createFloorMaterial(
       }
     `,
     fragmentShader: /* glsl */ `
-      uniform float uPulse, uBoost, uRadius, uCell;
+      uniform float uPulse, uBoost, uRadius, uCell, uEnd;
       uniform vec2 uViewport;
       uniform vec3 uCyan, uIce, uDusk;
       varying vec2 vP;
       varying float vWell;
+      ${calmGLSL}
 
       float sq(float x) { return x * x; }
       // Anti-aliased line of width w (px) around distance d.
@@ -422,6 +446,11 @@ export function createFloorMaterial(
           c += mix(uIce, uDusk, uBoost) * (line(r - rr, 2.5) + exp(-sq((r - rr) / 12.0)) * 0.4) * alpha * rim;
         }
 
+        // End of the descent: bright near the well, near-black toward the
+        // edges and behind panels.
+        float lit = mix(${end.edge.toFixed(3)}, 1.0, 1.0 - smoothstep(${end.r0.toFixed(1)}, ${end.r1.toFixed(1)}, r));
+        c *= mix(1.0, lit * (1.0 - ${end.calm.toFixed(3)} * calmMask()), uEnd);
+
         // Deep in the throat triangles collapse on screen and fwidth() turns
         // inf/NaN; drop those pixels, or bloom spreads the NaN over the frame.
         if (any(isnan(c)) || any(isinf(c))) discard;
@@ -433,15 +462,16 @@ export function createFloorMaterial(
 }
 
 /**
- * Core lock: one flat padlock of translucent dark glass lying over the
- * well's mouth (References/"example lock"). A void plate, faintly tinted by
+ * Core lock: one flat padlock of translucent dark glass hovering over the
+ * well's mouth (References/"example lock"). Tinted by `rest` (vex-cyan),
+ * turning `hover` (magenta) while Enter Core is hovered (uBoost). A void plate, faintly tinted by
  * the edge color, dims the floor grid behind it so the neon outline reads
  * against the pink floor. The core lights it from below around the keyhole,
  * flaring on each beat. Writes depth: the beam below it is hidden except
  * where it drops through the keyhole (a real hole in the mesh).
  */
 export function createLockMaterial(
-  colors: { void: Color; locked: Color; open: Color; ice: Color },
+  colors: { void: Color; rest: Color; hover: Color; ice: Color },
   pulse: typeof pulseUniforms,
 ) {
   return new ShaderMaterial({
@@ -451,21 +481,20 @@ export function createLockMaterial(
     uniforms: {
       ...pulse,
       uVoid: { value: colors.void },
-      uLocked: { value: colors.locked },
-      uOpen: { value: colors.open },
+      uRest: { value: colors.rest },
+      uHover: { value: colors.hover },
       uIce: { value: colors.ice },
     },
     vertexShader: /* glsl */ `
       varying vec2 vXZ;
       void main() {
-        vec4 w = modelMatrix * vec4(position, 1.0);
-        vXZ = w.xz * 100.0; // px from the beam axis
-        gl_Position = projectionMatrix * viewMatrix * w;
+        vXZ = position.xy; // shape px from the keyhole center
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: /* glsl */ `
       uniform float uPulse, uBoost;
-      uniform vec3 uVoid, uLocked, uOpen, uIce;
+      uniform vec3 uVoid, uRest, uHover, uIce;
       varying vec2 vXZ;
       ${pulseFlareGLSL}
 
@@ -473,7 +502,7 @@ export function createLockMaterial(
 
       void main() {
         float glow = exp(-sq(length(vXZ) / 50.0)) * (0.35 + 0.9 * pulseFlare(uPulse));
-        vec3 tint = mix(uLocked, uOpen, uBoost);
+        vec3 tint = mix(uRest, uHover, uBoost);
         vec3 col = mix(uVoid, tint, 0.12 + 0.08 * uBoost) + mix(uIce, tint, 0.5) * glow * 0.45;
         float alpha = clamp(0.55 + 0.25 * glow, 0.0, 1.0);
         gl_FragColor = vec4(col, alpha);
@@ -483,14 +512,14 @@ export function createLockMaterial(
   });
 }
 
-/** Core lock outline: neon edges (silhouette and keyhole), hot enough to bloom. Magenta-core at rest, vex-cyan on boost; whiter on each beat. */
-export function createLockEdgeMaterial(colors: { locked: Color; open: Color; light: Color }, pulse: typeof pulseUniforms) {
+/** Core lock outline: neon edges (silhouette and keyhole), hot enough to bloom. Vex-cyan at rest, magenta on Enter Core hover; whiter on each beat. */
+export function createLockEdgeMaterial(colors: { rest: Color; hover: Color; light: Color }, pulse: typeof pulseUniforms) {
   return new ShaderMaterial({
     ...additive,
     uniforms: {
       ...pulse,
-      uLocked: { value: colors.locked },
-      uOpen: { value: colors.open },
+      uRest: { value: colors.rest },
+      uHover: { value: colors.hover },
       uLight: { value: colors.light },
     },
     vertexShader: /* glsl */ `
@@ -500,10 +529,10 @@ export function createLockEdgeMaterial(colors: { locked: Color; open: Color; lig
     `,
     fragmentShader: /* glsl */ `
       uniform float uPulse, uBoost;
-      uniform vec3 uLocked, uOpen, uLight;
+      uniform vec3 uRest, uHover, uLight;
       ${pulseFlareGLSL}
       void main() {
-        vec3 col = mix(mix(uLocked, uOpen, uBoost), uLight, 0.2 * pulseFlare(uPulse)) * (2.0 + 0.6 * uBoost);
+        vec3 col = mix(mix(uRest, uHover, uBoost), uLight, 0.2 * pulseFlare(uPulse)) * (2.0 + 0.6 * uBoost);
         gl_FragColor = vec4(col, 1.0);
         #include <colorspace_fragment>
       }
@@ -511,84 +540,41 @@ export function createLockEdgeMaterial(colors: { locked: Color; open: Color; lig
   });
 }
 
-
 /**
- * Floor pillars (faces, solid outlines or scaffold lines). Solids: void
- * sides, raised-indigo tops; outlines faint cyan with a glow where they meet
- * the floor; scaffolds brighter ice lines. Everything dissolves into the
- * sky with height above the floor (`haze`). In a screen column around the
- * beam, parts high up behind it and pillars between the camera and it fade
- * out, so the stream stays clear. Floating parts bob in place (`aFloat`: amplitude, phase).
+ * Soft glow ring on the sheet under the hovering lock, like its shadow cast
+ * in light. Flat ring geometry in px (local xy); the profile is a soft band
+ * at `r` px, `width` wide, over a faint disc. Takes the lock's tint (rest →
+ * hover with uBoost), breathes with the bob (`uLift` 0..1: brighter and
+ * tighter as the lock comes down) and flares on each beat.
  */
-export function createStructureMaterial(
-  kind: "faces" | "edges" | "scaffold",
-  colors: { void: Color; top: Color; edge: Color; scaffold: Color },
-  spec: {
-    floorY: number;
-    hazeStart: number;
-    hazeEnd: number;
-    column: { inner: number; outer: number; columnFrom: number };
-    bobPeriod: number;
-  },
+export function createLockShadowMaterial(
+  colors: { rest: Color; hover: Color },
+  spec: { r: number; width: number },
+  pulse: typeof pulseUniforms,
 ) {
-  const faces = kind === "faces";
   return new ShaderMaterial({
-    transparent: true,
-    depthWrite: faces,
-    blending: faces ? NormalBlending : AdditiveBlending,
-    uniforms: {
-      uTime: { value: 0 },
-      uViewport: { value: new Vector2(1, 1) },
-      uDpr: { value: 1 },
-      uScale: { value: 1 },
-      uFloorY: { value: spec.floorY },
-      uHaze: { value: new Vector2(spec.hazeStart, spec.hazeEnd) },
-      uColumn: { value: new Vector3(spec.column.inner, spec.column.outer, spec.column.columnFrom) },
-      uCamPos: { value: new Vector3() },
-      uVoid: { value: colors.void },
-      uTop: { value: colors.top },
-      uEdge: { value: kind === "scaffold" ? colors.scaffold : colors.edge },
-    },
+    ...additive,
+    uniforms: { ...pulse, uRest: { value: colors.rest }, uHover: { value: colors.hover }, uLift: { value: 0.5 } },
     vertexShader: /* glsl */ `
-      attribute vec2 aFloat; // bob amplitude (world units), phase
-      uniform float uTime;
-      varying vec3 vN;
-      varying float vH;
-      varying vec2 vXZ;
+      varying vec2 vP;
       void main() {
-        vN = normal;
-        vec4 w = modelMatrix * vec4(position, 1.0);
-        vXZ = w.xz * 100.0; // px from the beam axis
-        w.y += aFloat.x * sin(uTime * ${(Math.PI * 2 / spec.bobPeriod).toFixed(5)} + aFloat.y);
-        vH = (w.y - ${spec.floorY.toFixed(4)}) * 100.0; // px above the floor
-        gl_Position = projectionMatrix * viewMatrix * w;
+        vP = position.xy;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: /* glsl */ `
-      uniform vec2 uViewport, uHaze;
-      uniform vec3 uColumn, uVoid, uTop, uEdge, uCamPos;
-      uniform float uDpr, uScale;
-      varying vec3 vN;
-      varying float vH;
-      varying vec2 vXZ;
+      uniform float uPulse, uBoost, uLift;
+      uniform vec3 uRest, uHover;
+      varying vec2 vP;
+      ${pulseFlareGLSL}
+      float sq(float x) { return x * x; }
       void main() {
-        float haze = 1.0 - smoothstep(uHaze.x, uHaze.y, vH);
-        float dx = abs(gl_FragCoord.x - uViewport.x * 0.5) / uDpr;
-        float column = smoothstep(uColumn.x * uScale, uColumn.y * uScale, dx);
-        // Behind the beam: only parts high up. Between camera and beam: everything.
-        float near = smoothstep(-0.1, 0.1, dot(normalize(vXZ + 1e-3), normalize(uCamPos.xz + 1e-3)));
-        column = mix(1.0, column, max(near, smoothstep(uColumn.z * 0.6, uColumn.z, vH)));
-        float fade = haze * column;
-        if (fade <= 0.002) discard;
-        ${
-          faces
-            ? `float lit = max(vN.y, 0.0) * 0.8 + abs(vN.x) * 0.15;
-        gl_FragColor = vec4(mix(uVoid, uTop, lit), 0.9 * fade);`
-            : kind === "edges"
-              ? `float foot = 1.0 + 1.5 * exp(-max(vH, 0.0) / 40.0);
-        gl_FragColor = vec4(uEdge * 0.35 * foot * fade, 1.0);`
-              : `gl_FragColor = vec4(uEdge * 0.5 * fade, 1.0);`
-        }
+        float r0 = ${spec.r.toFixed(1)} * (1.04 - 0.08 * (1.0 - uLift));
+        float r = length(vP);
+        float band = exp(-sq((r - r0) / ${(spec.width / 2).toFixed(1)}));
+        float disc = exp(-sq(r / r0)) * 0.25;
+        float k = (band + disc) * (0.32 + 0.1 * (1.0 - uLift) + 0.35 * pulseFlare(uPulse));
+        gl_FragColor = vec4(mix(uRest, uHover, uBoost) * k, 1.0);
         #include <colorspace_fragment>
       }
     `,
