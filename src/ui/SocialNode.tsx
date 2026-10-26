@@ -15,7 +15,7 @@ type SocialNodeProps = {
  * Social Node per DESIGN.md:
  * - 46px rotated square (void 0.85 bg, 1.5px cyan border 0.55, cyan glow)
  * - 24px icon centered
- * - Mono/Data label below ("GITHUB ↗", "LINKEDIN ↗", "DISCORD · COPY")
+ * - Mono/Data label below ("GITHUB ↗", "LINKEDIN ↗", "DISCORD·COPY")
  * - Discord: copies username, label switches to "COPIED ✓" for 1.5s.
  *   If the clipboard is blocked, the label shows the username for 4s
  *   so it can be read and copied by hand.

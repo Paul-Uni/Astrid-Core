@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { readPalette } from "./palette";
-import { MOBILE_BREAKPOINT, MOBILE_SCALE } from "./streamSpec";
+import { MOBILE_SCALE } from "./streamSpec";
+import { useIsMobile } from "./useIsMobile";
 import { Sky } from "./Sky";
 import { Silhouettes } from "./Silhouettes";
 import { Dust } from "./Dust";
@@ -26,14 +27,6 @@ const STILL_TIME = 6;
 const CAMERA_FOV = 8;
 /** Fewer cubes on phones: smaller screen, weaker GPU. */
 const CUBE_COUNT = { desktop: 170, mobile: 90 } as const;
-const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
-
-function subscribeMobile(onChange: () => void) {
-  const mq = window.matchMedia(MOBILE_QUERY);
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
-}
-
 /**
  * The WebGL data stream behind the page. Client only (loaded by StageLoader
  * with ssr: false), so the DOM content paints first and stays readable
@@ -42,11 +35,7 @@ function subscribeMobile(onChange: () => void) {
  */
 export default function Stage() {
   const still = usePrefersReducedMotion();
-  const isMobile = useSyncExternalStore(
-    subscribeMobile,
-    () => window.matchMedia(MOBILE_QUERY).matches,
-    () => false,
-  );
+  const isMobile = useIsMobile();
   const scale = isMobile ? MOBILE_SCALE : 1;
   const palette = useMemo(() => readPalette(), []);
   const [ready, setReady] = useState(false);

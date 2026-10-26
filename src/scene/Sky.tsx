@@ -11,7 +11,7 @@ const WELL = new Vector3(0, toWorldY(STREAM.emitter.cy + STREAM.emitter.well.dro
 const projected = new Vector3();
 
 /** Full-screen sky drawn first, behind everything (same gradient as the CSS fallback). Goes dark at the end of the descent, lit from the well. */
-export function Sky({ palette, scale }: { palette: Palette; scale: number }) {
+export function Sky({ palette, scale, haze }: { palette: Palette; scale: number; haze?: number }) {
   const material = useMemo(
     () =>
       createSkyMaterial({
@@ -20,8 +20,8 @@ export function Sky({ palette, scale }: { palette: Palette; scale: number }) {
         skyMid: palette["sky-mid"],
         duskPink: palette["dusk-pink"],
         magenta: palette["magenta-core"],
-      }),
-    [palette],
+      }, haze),
+    [palette, haze],
   );
   useEffect(() => () => material.dispose(), [material]);
 

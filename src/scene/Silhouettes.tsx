@@ -15,6 +15,7 @@ const R = toWorld(STREAM.emitter.floor.radius);
 const center = new Vector3();
 const far = new Vector3();
 const side = new Vector3();
+const look = new Vector3();
 
 const smoothstep = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
@@ -53,6 +54,8 @@ export function Silhouettes({ palette, scale, still, mobile }: { palette: Palett
     uniforms.uTheta!.value = theta;
     uniforms.uProgress!.value = still ? 0 : progress;
     uniforms.uSink!.value = still ? 0 : smoothstep(S.sink.from, S.sink.to, progress);
+    // Roof depth on screen: sin(pitch) of the camera looking down, same as the rings.
+    uniforms.uRoof!.value = S.roof.depth * Math.max(0, -camera.getWorldDirection(look).y);
 
     // Floor's far edge on screen: an ellipse through the far point, as wide as the side points.
     const a = theta * DEG;

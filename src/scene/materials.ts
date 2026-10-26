@@ -29,7 +29,7 @@ const additive = {
 
 /**
  * Full-screen sky: void → indigo (45%) → sky-mid (72%) → void, plus dusk
- * haze around the beam. At the end of the descent (uEnd) it goes dark: near
+ * haze around the beam (strength `haze`; 0 on the login page). At the end of the descent (uEnd) it goes dark: near
  * void everywhere except a low magenta glow around the well (`uWell`, uv).
  */
 export function createSkyMaterial(colors: {
@@ -38,11 +38,12 @@ export function createSkyMaterial(colors: {
   skyMid: Color;
   duskPink: Color;
   magenta: Color;
-}) {
+}, haze = 0.42) {
   return new ShaderMaterial({
     depthTest: false,
     depthWrite: false,
     uniforms: {
+      uHaze: { value: haze },
       uVoid: { value: colors.void },
       uIndigo: { value: colors.indigo },
       uSkyMid: { value: colors.skyMid },
@@ -63,7 +64,7 @@ export function createSkyMaterial(colors: {
     fragmentShader: /* glsl */ `
       uniform vec3 uVoid, uIndigo, uSkyMid, uDusk, uMagenta;
       uniform vec2 uResolution, uWell;
-      uniform float uHazeScale, uEnd;
+      uniform float uHazeScale, uEnd, uHaze;
       varying vec2 vUv;
       void main() {
         float t = 1.0 - vUv.y; // 0 top, 1 bottom
@@ -76,7 +77,7 @@ export function createSkyMaterial(colors: {
         vec2 q = px / vec2(330.0, 380.0);
         float haze = exp(-dot(q, q));
         vec3 hazeColor = mix(uDusk, uMagenta, haze);
-        c = mix(c, hazeColor, haze * 0.42);
+        c = mix(c, hazeColor, haze * uHaze);
 
         // End of the descent: dark, lit only from the well.
         vec2 w = (vUv - uWell) * uResolution / uHazeScale / vec2(420.0, 170.0);
@@ -145,26 +146,39 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
           float c = floor(cf);
           float h = height${i}(c);
           float flash = sinking;
+          float has = h > 0.5 ? 1.0 : 0.0;
           float base = min(mix(${f(l.horizon[0])}, ${f(l.horizon[1])}, uProgress) * uResolution.y, ground);
-          float roof = base - h;
-          float d = px.y - roof; // px below the roofline
-          float inside = smoothstep(-0.75, 0.75, d) * (h > 0.5 ? 1.0 : 0.0);
-          float a = ${f(l.dark)} * uBoost * mix(1.0, ${f(S.base)}, smoothstep(0.0, ${f(l.fade)} * uScale, d));
-          float rim = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, abs(d))) * (h > 0.5 ? 1.0 : 0.0);
+          // Seen from the camera's pitch, like the rings: each roof shows as a band above its front edge.
+          float top = colW * ${f(l.group)} * uRoof;
+          float roof = base - h;   // front edge of the roof
+          float crown = roof - top; // back edge of the roof
+          float d = px.y - roof;    // px below the roof's front edge
+          float dc = px.y - crown;
+          float inside = smoothstep(-0.75, 0.75, dc) * has;
+          float onRoof = inside * (1.0 - smoothstep(-0.75, 0.75, d));
+          float a = ${f(l.dark)} * uBoost * mix(1.0, ${f(S.base)}, smoothstep(0.0, ${f(l.fade)} * uScale, max(d, 0.0)));
+          float rim = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, abs(dc))) * has;
+          rim = max(rim, (1.0 - smoothstep(0.0, ${f(S.rimPx)}, abs(d))) * has * ${f(S.roof.edge)});
 
           // Side facing the beam, where the next building toward the center is lower.
           float toward = px.x < uResolution.x * 0.5 ? 1.0 : -1.0;
           float hn = height${i}(c + toward);
           float edgeDist = (toward > 0.0 ? 1.0 - fract(cf) : fract(cf)) * colW;
-          float side = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, edgeDist)) * step(0.0, d) * step(px.y, base - hn)
-            * (1.0 - smoothstep(0.0, ${f(S.sideFade)} * uScale, d));
+          float side = (1.0 - smoothstep(0.0, ${f(S.rimPx)}, edgeDist)) * step(0.0, dc) * step(px.y, base - hn - (hn > 0.5 ? top : 0.0))
+            * (1.0 - smoothstep(0.0, ${f(S.sideFade)} * uScale, dc)) * has; // a sunk building has no side
           rim = max(rim, side) * ${f(S.rim)};
 
-          vec3 lc = mix(shade, mix(uDusk, uIce, flash), rim / max(a * inside + rim, 1e-3));
-          float la = max(a * inside, rim * (1.0 + flash));
-          la *= 1.0 - smoothstep(ground - ${f(S.ground.fade)} * uScale, ground, px.y); // nothing below the floor's edge
-          pc = lc * la + pc * (1.0 - la); // premultiplied "over": nearer layers cover farther ones
-          alpha = la + alpha * (1.0 - la);
+          vec3 body = mix(shade, uDusk, ${f(S.roof.lift)} * onRoof);
+          float clip = 1.0 - smoothstep(ground - ${f(S.ground.fade)} * uScale, ground, px.y); // nothing below the floor's edge
+          float cover = inside * clip;
+          // Solid against farther layers: a building replaces whatever stands behind it,
+          // and only lets the sky through (haze), so back rows never show through front ones.
+          pc = mix(pc, body * a, cover);
+          alpha = mix(alpha, a, cover);
+          // Backlight rim on top (premultiplied "over").
+          float rr = rim * (1.0 + flash) * clip;
+          pc = mix(uDusk, uIce, flash) * rr + pc * (1.0 - rr);
+          alpha = rr + alpha * (1.0 - rr);
         }
       `;
     })
@@ -187,6 +201,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
       uTheta: { value: 0 },
       uProgress: { value: 0 },
       uSink: { value: 0 },
+      uRoof: { value: 0 },
       uRim: { value: new Vector4(0, 1e5, 1, 0) },
     },
     vertexShader: /* glsl */ `
@@ -198,7 +213,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
       uniform vec3 uVoid, uIndigo, uDusk, uIce;
       uniform vec2 uResolution;
       uniform vec4 uRim;
-      uniform float uDpr, uScale, uBoost, uTheta, uProgress, uSink, uEnd;
+      uniform float uDpr, uScale, uBoost, uTheta, uProgress, uSink, uRoof, uEnd;
       ${calmGLSL}
       float hash(float n) { return fract(sin(n * 12.9898 + 4.1414) * 43758.5453); }
       float sinking; // 0..1..0 while the column last measured is going down
@@ -475,11 +490,15 @@ export function createFragmentMaterial(
   pass: "back" | "front",
   kind: "faces" | "edges",
   colors: { top: Color; side: Color; edge: Color },
+  /** How far cubes fade inside calm zones (0 = not at all, the main stage; 1 = gone). */
+  calm = 0,
 ) {
   return new ShaderMaterial({
     transparent: true,
     depthWrite: kind === "faces",
     uniforms: {
+      ...calmUniforms,
+      uCalm: { value: calm },
       uTime: { value: 0 },
       uCamPos: { value: new Vector3() },
       uFront: { value: pass === "front" ? 1 : 0 },
@@ -491,10 +510,11 @@ export function createFragmentMaterial(
     vertexShader: FRAGMENT_VERTEX,
     fragmentShader: /* glsl */ `
       uniform vec3 uCamPos, uTop, uSide, uEdge;
-      uniform float uFront, uEdges;
+      uniform float uFront, uEdges, uCalm;
       varying float vAlpha;
       varying float vNy;
       varying vec3 vCenter;
+      ${calmGLSL}
       void main() {
         float facing = dot(normalize(vCenter.xz + 1e-5), normalize(uCamPos.xz + 1e-5));
         if ((facing >= 0.0) != (uFront > 0.5)) discard;
@@ -502,6 +522,7 @@ export function createFragmentMaterial(
         vec3 c = uEdges > 0.5 ? uEdge : mix(uSide, uTop, smoothstep(0.3, 0.8, vNy));
         // Front cubes are opaque so the beam never shows through them.
         float a = mix(uEdges > 0.5 ? 0.9 : 0.85, 1.0, step(0.0, facing)) * vAlpha * dim;
+        if (uCalm > 0.0) a *= 1.0 - uCalm * calmMask();
         gl_FragColor = vec4(c, a);
         #include <colorspace_fragment>
       }

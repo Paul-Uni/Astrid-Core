@@ -135,7 +135,9 @@ export const STREAM = {
    * skyline climbs into view as you descend.
    *
    * Color: void/indigo at `dark` opacity over the sky, thinning to `base` ×
-   * that `fade` px below the roofline, so feet dissolve into the haze. Roof
+   * that `fade` px below the roofline, so feet dissolve into the haze. The
+   * layers are solid against each other: a nearer building hides the ones
+   * behind it, and only the sky shows through (haze, not glass). Roof
    * edges catch a dusk-pink backlight (`rim` strength, `rimPx` px), and so
    * does a building's side facing the beam where its neighbor toward the
    * center is lower (fading over `sideFade` px down). Calm zones thin them
@@ -149,6 +151,13 @@ export const STREAM = {
    * into that edge one block at a time, each column delayed by up to
    * `sink.spread` of the run, its roof flashing ice while it goes. At 05
    * the rest fades by `endFade` with the dark end mood.
+   *
+   * Roofs (References/tilt.png): the camera looks down on the stream, so it
+   * looks down on the city too. Each building shows its roof as a band
+   * above the front edge, `roof.depth` × its width deep, foreshortened by
+   * the camera's live pitch (steeper at 05, so roofs open up there). The
+   * roof is tinted `roof.lift` toward dusk-pink; the backlight rim sits on
+   * its back edge, a fainter one (`roof.edge` × rim) on the front edge.
    */
   silhouettes: {
     layers: [
@@ -165,6 +174,7 @@ export const STREAM = {
     ground: { fade: 4, haze: 0.32, hazePx: 30 },
     sink: { from: 0.87, to: 0.985, spread: 0.55 },
     endFade: 0.35,
+    roof: { depth: 0.7, lift: 0.09, edge: 0.6 },
   },
 } as const;
 

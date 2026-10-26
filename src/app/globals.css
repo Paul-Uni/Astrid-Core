@@ -33,6 +33,8 @@
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --dur-hover: 160ms;
   --dur-ui: 240ms;
+  /* Color fade-in on the login arrow button: plain ease over this, so it reads as a fade. */
+  --dur-fade: 200ms;
 }
 
 /* ---------- Tailwind v4 @theme bridge ---------- */
@@ -98,6 +100,16 @@
      fixed -z-10 scene layer (sky gradient / WebGL canvas) behind the page. */
   html {
     background: var(--color-void);
+  }
+
+  /* No one-word last lines in running text; headings split into even lines. */
+  p {
+    text-wrap: pretty;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 
   html,

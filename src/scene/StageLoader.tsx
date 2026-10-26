@@ -8,3 +8,10 @@ const Stage = dynamic(() => import("./Stage"), { ssr: false });
 export function StageLoader() {
   return <Stage />;
 }
+
+const LoginStage = dynamic(() => import("./LoginStage"), { ssr: false });
+
+/** The login page's backdrop (dust, cubes, floor grid), client only. */
+export function LoginStageLoader() {
+  return <LoginStage />;
+}

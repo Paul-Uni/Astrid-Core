@@ -38,10 +38,9 @@ export function Station00Entry() {
             style={{ color: "var(--color-ice)" }}
           >
             {"Hi, I’m Paul."}
-            <br />
-            Welcome
-            <br />
-            to the Core.
+            <span className="mt-3 block font-pixel text-heading-m text-vex-cyan max-md:text-heading-s">
+              C#/.NET &amp; AI developer
+            </span>
           </h1>
 
           <p
@@ -61,7 +60,7 @@ export function Station00Entry() {
 
           <div className="flex flex-wrap items-start gap-4 max-md:flex-col max-md:items-stretch max-md:gap-2.5">
             <ButtonGhost href="#projects" className="max-md:justify-center">View projects</ButtonGhost>
-            <ButtonCore href="#login" className="max-md:justify-center">
+            <ButtonCore href="/login" variant="outline" className="max-md:justify-center">
               Enter Core
               <span aria-hidden>→</span>
             </ButtonCore>

@@ -16,6 +16,11 @@ import { range, seededRandom } from "./random";
 import { RENDER_ORDER, STREAM, toWorldY } from "./streamSpec";
 
 type Cube = { origin: [number, number, number]; seed: [number, number, number, number]; orbit: number };
+/** Where cubes spawn, world units: radius from the axis and starting height. */
+export type CubeField = { rMin: number; rMax: number; yMin: number; yMax: number };
+
+/** Default field: around the beam, from the emitter up to the light. */
+const STREAM_FIELD: CubeField = { rMin: 0.7, rMax: 4.6, yMin: toWorldY(STREAM.emitter.cy), yMax: 0.5 };
 
 /**
  * Small cubes in front of and behind the stream (DESIGN.md "Fragments"):
@@ -23,11 +28,10 @@ type Cube = { origin: [number, number, number]; seed: [number, number, number, n
  * orbit the beam counter-clockwise (one turn per 60–120 s), fade near the
  * end of each life and respawn near the beam.
  */
-function makeCubes(count: number): Cube[] {
+function makeCubes(count: number, field: CubeField): Cube[] {
   const rng = seededRandom(4600);
-  const bottom = toWorldY(STREAM.emitter.cy);
   return Array.from({ length: count }, () => ({
-    origin: [range(rng, 0.7, 4.6), range(rng, 0, Math.PI * 2), range(rng, bottom, 0.5)],
+    origin: [range(rng, field.rMin, field.rMax), range(rng, 0, Math.PI * 2), range(rng, field.yMin, field.yMax)],
     seed: [
       range(rng, 4, 10),
       (Math.PI * 2) / range(rng, 20, 40),
@@ -67,26 +71,41 @@ function mergeCubes(base: BufferGeometry, cubes: Cube[]) {
   return g;
 }
 
-export function Fragments({ palette, count, still, stillTime }: { palette: Palette; count: number; still: boolean; stillTime: number }) {
+export function Fragments({
+  palette,
+  count,
+  still,
+  stillTime,
+  field = STREAM_FIELD,
+  calm = 0,
+}: {
+  palette: Palette;
+  count: number;
+  still: boolean;
+  stillTime: number;
+  field?: CubeField;
+  /** Fade inside calm zones (DOM `data-calm`), 0..1. Off on the main stage. */
+  calm?: number;
+}) {
   const geometry = useMemo(() => {
-    const cubes = makeCubes(count);
+    const cubes = makeCubes(count, field);
     const box = new BoxGeometry(1, 1, 1).toNonIndexed();
     const edges = new EdgesGeometry(new BoxGeometry(1, 1, 1));
     const result = { faces: mergeCubes(box, cubes), edges: mergeCubes(edges, cubes) };
     box.dispose();
     edges.dispose();
     return result;
-  }, [count]);
+  }, [count, field]);
 
   const materials = useMemo(() => {
     const colors = { top: palette["indigo-raised"], side: palette.indigo, edge: palette["vex-cyan"] };
     return {
-      facesBack: createFragmentMaterial("back", "faces", colors),
-      edgesBack: createFragmentMaterial("back", "edges", colors),
-      facesFront: createFragmentMaterial("front", "faces", colors),
-      edgesFront: createFragmentMaterial("front", "edges", colors),
+      facesBack: createFragmentMaterial("back", "faces", colors, calm),
+      edgesBack: createFragmentMaterial("back", "edges", colors, calm),
+      facesFront: createFragmentMaterial("front", "faces", colors, calm),
+      edgesFront: createFragmentMaterial("front", "edges", colors, calm),
     };
-  }, [palette]);
+  }, [palette, calm]);
 
   useEffect(
     () => () => {

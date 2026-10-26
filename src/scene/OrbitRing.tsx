@@ -10,6 +10,9 @@ import { STATIONS } from "@/tokens/stations";
 const { orbit, well, cy } = STREAM.emitter;
 const SEGMENTS = 256;
 const DEG = Math.PI / 180;
+/** px a social node fades over as it slides out from under the contact panel. */
+const FADE = 48;
+
 /** Sheet sag at r px from the axis (same curve as the floor), so the ring lies on the sheet. */
 const sag = (r: number) => (well.depth * well.radius ** 2) / (r * r + well.radius ** 2);
 const ringY = (r: number) => toWorldY(cy + well.drop + sag(r));
@@ -72,6 +75,9 @@ export function OrbitRing({ palette, still, mobile }: { palette: Palette; still:
     if (still) return;
     // CameraRig moved the camera this frame; its matrices refresh only at render time.
     camera.updateMatrixWorld();
+    // The contact panel scrolls with the page while the nodes ride the ring with
+    // the camera, so mid-scroll they can meet (mostly on phones).
+    const panel = document.querySelector<HTMLElement>("#contact [data-panel]")?.getBoundingClientRect();
     NODE_IDS.forEach((id, i) => {
       const el = document.querySelector<HTMLElement>(`[data-orbit-node="${id}"]`);
       if (!el) return;
@@ -86,8 +92,14 @@ export function OrbitRing({ palette, still, mobile }: { palette: Palette; still:
       const cy = (0.5 - screen.y * 0.5) * size.height;
       const x = Math.min(size.width - w, Math.max(0, cx - w / 2));
       const y = cy - 32;
-      // Hidden (and out of the tab order) while its ring point is off screen.
-      el.style.visibility = y + h < 0 || y > size.height ? "hidden" : "visible";
+      // A node under the panel fades out over its last FADE px of overlap.
+      let fade = 1;
+      if (panel && x < panel.right && x + w > panel.left) {
+        fade = Math.min(1, Math.max(0, (y - panel.bottom) / FADE + 1));
+      }
+      el.style.opacity = fade.toFixed(2);
+      // Hidden (and out of the tab order) while its ring point is off screen or it sits under the panel.
+      el.style.visibility = y + h < 0 || y > size.height || fade === 0 ? "hidden" : "visible";
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
     });
   });

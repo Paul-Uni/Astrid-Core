@@ -76,6 +76,8 @@ Rules:
 | Mono/Label | JetBrains Mono Medium | 13 / 140% / 12%, uppercase | Nav links, section labels (`// 03 PROJECTS`), secondary buttons |
 | Mono/Data | JetBrains Mono Regular | 12 / 140% / 4% | HUD values, orbit rail, telemetry |
 
+Running text uses `text-wrap: pretty` (no one-word last lines) and h1–h3 use `text-wrap: balance` (globals.css base layer).
+
 Three families with fixed jobs: Pixelify = titles, buttons, logo; Space Grotesk = reading; JetBrains Mono = nav links, section labels, data. No fourth family.
 
 ## Spacing and layout
@@ -108,7 +110,7 @@ Glass panels carry 14px cyan corner brackets (2px stroke) on all four corners.
 
 | Component | Spec |
 | --- | --- |
-| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right, on the 56px edge gutter across the full viewport width, 32px gap, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
+| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right (Button/Core outline, compact 8/14 padding: same fade-up hover as Enter Core; also in `Nav/Mobile`), on the 56px edge gutter across the full viewport width, 32px gap, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
 | Nav/Link | Mono/Label, ice at 0.85, padding 8/4 |
 | Nav/Box (Login) | Pixel/Label, dusk-pink text, 1px magenta border at 0.9, magenta fill at 0.12, padding 8/14 |
 | Button/Ghost | "View projects". Pixel/Label, vex-cyan text, 1px vex-cyan border (0.8), fill vex-cyan 0.06, padding 16/24 |
@@ -123,10 +125,11 @@ Glass panels carry 14px cyan corner brackets (2px stroke) on all four corners.
 | Cluster / Project / Entry panels | Glass panels (padding 22–28) with a Mono/Data meta line (`// NODE 01 · …`), a Heading/M or Display/L title, Body/M text, optional chips. Tied to the beam by a circuit tether (see Tethers). Supersedes the dashed connectors drawn in Figma |
 | Link line | Mono/Data, lowercase, dusk-pink, starts with `↳`: `↳ this site's namesake · source on github ↗` (Astrid), `↳ behind the scenes · source on github ↗` (astridcore.dev). The hero's scroll hint (`scroll, and the camera takes you along`) uses the same style without the arrow, as its own line under the intro |
 | Tethers | Code only (`chrome/Tethers.tsx`), desktop only (≥ 768px). Every panel marked `tether` gets a 1px trace from its inner edge, 34px below its top: a straight run, a 45° bend (≤ 46px) and a straight lead (≤ 70px) into a diamond node (12px, void fill, 1.5px stroke) on the beam at the viewport center, plus a 6px square terminal on the panel edge. Trace vex-cyan at 0.6; dusk-pink for the current entry (`tether={{ now: true }}`). Panels closer than 48px to the beam get none. Tethered: 01 profile + photo, 02 clusters, 03 Astrid + astridcore.dev, 04 entries. Headers and 05 stay untethered |
-| Core Gate (05) | No text, no explanation. The Core lock (WebGL, see the emitter floor) lies over the spacetime well; the beam drops through its keyhole. Button/Core outline variant `ENTER CORE →` below (anchor + 176px; 1px magenta frame, void 55%, dusk-pink text; fills with `--cta-fill` and ice text on hover/focus). Hovering or focusing it sets the core to boost: the lock's edge turns from magenta-core to vex-cyan and glows brighter, core light turns dusk pink, the heartbeat speeds up from 7 s to 1.5 s |
-| Social Node (05) | Component `Social Node` with `State=Default|Hover`, props `Label` (text) and `Icon` (instance swap). 46px rotated square (void 0.85, 1.5px cyan border 0.55, cyan glow) holding a 24px icon, Mono/Data label below (`GITHUB ↗`, `LINKEDIN ↗`, `DISCORD · COPY`). Sits on the contact orbit (ellipse around the lock, rx 330 / ry 118). Click: GitHub/LinkedIn open in a new tab, Discord copies `paul_lauer` and the label shows `COPIED ✓` for 1.5s. Needs an aria-label. Motion: fly in along the orbit while scrolling into 05, then rest. Reduced motion: static |
+| Core Gate (05) | No text, no explanation. The Core lock (WebGL, see the emitter floor) lies over the spacetime well; the beam drops through its keyhole. Button/Core outline variant `ENTER CORE →` below (anchor + 176px; the same button as the login arrow: magenta frame at 70%, void 55%, dusk-pink text; on hover/focus it fades over 200ms to a full magenta frame, `--cta-fill` at 55% (translucent), a 36px glow and ice text). Hovering or focusing it sets the core to boost: the lock's edge turns from magenta-core to vex-cyan and glows brighter, core light turns dusk pink, the heartbeat speeds up from 7 s to 1.5 s |
+| Social Node (05) | Component `Social Node` with `State=Default|Hover`, props `Label` (text) and `Icon` (instance swap). 46px rotated square (void 0.85, 1.5px cyan border 0.55, cyan glow) holding a 24px icon, Mono/Data label below (`GITHUB ↗`, `LINKEDIN ↗`, `DISCORD·COPY`, no spaces so it clears the screen edge on phones). Sits on the contact orbit (ellipse around the lock, rx 330 / ry 118). The nodes ride the ring with the camera while the contact panel scrolls with the page, so a node fades out over 48px as it slides under the panel and is hidden while beneath it (`OrbitRing`). Click: GitHub/LinkedIn open in a new tab, Discord copies `paul_lauer` and the label shows `COPIED ✓` for 1.5s. Needs an aria-label. Motion: fly in along the orbit while scrolling into 05, then rest. Reduced motion: static |
 | Icon slots | `Icon/GitHub (slot)`, `Icon/LinkedIn (slot)`, `Icon/Discord (slot)`: 24×24 components. Paste the official logo SVG from each brand's asset kit into the slot (single color, ice); in code use an icon package. Logos are not drawn by hand |
 | HUD line | Bottom left (24px from the edges): three Mono/Data readout lines at ice 0.75 (`cam.θ 000°`, `depth 0000`, `core: astrid`) stacked above `↓ SCROLL TO ORBIT` in Mono/Label (ice 0.85). θ and depth count live while scrolling. At 05 the prompt becomes `● CORE REACHED`. Readouts hidden on mobile |
+| Login page (`/login`, code only) | Stand-in gate until the private area exists. Backdrop (`scene/LoginStage`, WebGL; CSS sky as fallback): the stage's sky as the plain dark gradient (void → indigo → sky-mid → void, no magenta haze), dust and data cubes, from a fixed camera pitched 24°. No beam, rings, lock or floor grid. Cubes circle the form 320–850px out and fade inside calm zones (the form and Go Back); reduced motion holds one still frame. "← Go Back" top-left (Pixel/Label, ice, cyan on hover) linking home, centered (References/"lock screen exlpl"): a boxed password field, 352px max, with "Enter Password" as the placeholder (cyan 0.6 border, void 0.55 fill, Mono 16px, placeholder ice 0.75, cyan border on focus), and an outline Button/Core holding only "→" beneath it. On hover/focus the button fades up instead of snapping: frame 70% → full magenta, fill to the Enter Core pink --cta-fill at 55% (translucent, the sky shows through), glow 24 → 36px, arrow dusk-pink → ice, over 200ms (`--dur-fade`, plain ease, so the fade is visible); the press scale stays 160ms. Submitting does nothing. Every LOGIN / Enter Core link points here. Not indexed |
 
 Interaction states (drawn as `State` variants on Button/Ghost, Button/Core, Nav/Link):
 - Hover (only under `@media (hover: hover) and (pointer: fine)`): Ghost → fill cyan 0.14; Core → glow 36px; Nav/Link → opacity 1 + cyan.
@@ -139,12 +142,12 @@ Every station frame repeats the shell: sky gradient, glows, the stream instance 
 
 | Station | Content |
 | --- | --- |
-| 00 Entry | Intro panel, status chip, View projects + Enter Core, Core Telemetry |
+| 00 Entry | Intro panel, status chip, H1 "Hi, I'm Paul." with the role "C#/.NET & AI developer" under it (Pixel, Heading/M, vex-cyan, inside the H1; Heading/S on phones), View projects (Button/Ghost) + Enter Core (Button/Core outline, so the public action leads), Core Telemetry |
 | 01 About | Profile panel (text, interests, languages) left, photo frame right |
 | 02 Skills | Small header panel; three clusters spread around the stream: Languages & frameworks (top right), AI & agents (lower left), Tools & methods (lower right) |
 | 03 Projects | Header + Astrid (featured, Display/L title) left; CAM and astridcore.dev stacked right. Three cards only; the header carries one Mono/Data line for the smaller game projects: `// also built · games in unity/c# shipped as webgl builds, and a 2d game in python/pygame` |
 | 04 Background | Header left; five entries alternating sides, sorted by end date (today → 2021). The current one has a dusk-pink date |
-| 05 Contact | Contact panel ("Let's talk.", availability, email + Email me) left, static. GitHub, LinkedIn and Discord are Social Nodes (icons) on a dashed dusk-pink orbit around the lock; Core Gate (lock + Enter Core) centered on the emitter; footer `© 2026 PAUL ONYEIKEDI · ASTRIDCORE.DEV` bottom right; HUD reads `● CORE REACHED` |
+| 05 Contact | Contact panel ("Let's talk.", availability, the email row as the one mail action; no separate Email me button) left, static. GitHub, LinkedIn and Discord are Social Nodes (icons) on a dashed dusk-pink orbit around the lock; Core Gate (lock + Enter Core) centered on the emitter; footer `© 2026 PAUL ONYEIKEDI · ASTRIDCORE.DEV` bottom right; HUD reads `● CORE REACHED` |
 
 ## The data stream
 
@@ -267,7 +270,7 @@ These are intentional and part of the identity. Flag them in reviews only if the
 
 ## Known gaps in the current Figma (fix before or during build)
 
-- H1 "Hi, I'm Paul. Welcome to the Core." has no role in it; the role is carried by the status chip and the first line of the intro.
+- Figma's H1 still reads "Hi, I'm Paul. Welcome to the Core." The code replaced "Welcome to the Core" with the role line (critique 2026-10-26).
 - Gradients (sky, nav fade, light shaft) and the whole `Stream/Full` vector spec use raw hex values. Their colors match the tokens; in code they must reference the CSS variables.
 - Photo is a placeholder until Paul provides one. Project cards have no screenshots yet.
 - No reduced-motion frame.

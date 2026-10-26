@@ -1,3 +1,4 @@
+import { ButtonCore } from "@/ui/ButtonCore";
 import Link from "next/link";
 import { NAV_LINKS } from "@/tokens/stations";
 import { MobileMenu } from "./MobileMenu";
@@ -39,23 +40,17 @@ export function Nav() {
             </li>
           ))}
           <li>
-            <a
-              href="#login"
-              className="font-pixel text-pixel-label text-dusk-pink px-3.5 py-2 border border-magenta-core/90 bg-magenta-core/12 transition-colors duration-[var(--dur-hover)]"
-            >
-              LOGIN
-            </a>
+            <ButtonCore href="/login" variant="outline" compact>
+              Login
+            </ButtonCore>
           </li>
         </ul>
 
         {/* Phones (Figma Nav/Mobile): LOGIN + menu button; the links live in the menu */}
         <div className="hidden items-center gap-2.5 max-md:flex">
-          <a
-            href="#login"
-            className="font-pixel text-pixel-label text-dusk-pink px-3.5 py-2 border border-magenta-core/90 bg-magenta-core/12"
-          >
-            LOGIN
-          </a>
+          <ButtonCore href="/login" variant="outline" compact>
+            Login
+          </ButtonCore>
           <MobileMenu />
         </div>
       </nav>

@@ -1,6 +1,5 @@
 import { GlassPanel } from "@/ui/GlassPanel";
 import { SectionLabel } from "@/ui/SectionLabel";
-import { ButtonGhost } from "@/ui/ButtonGhost";
 import { SocialNode } from "@/ui/SocialNode";
 import { CoreGate } from "@/ui/CoreGate";
 import { Section } from "./Section";
@@ -65,13 +64,12 @@ export function Station05Contact() {
             </span>
           </a>
 
-          <ButtonGhost href="mailto:ponyeikedi@gmail.com">Email me</ButtonGhost>
         </GlassPanel>
 
         {/* Social nodes ride on the WebGL orbit ring (scene/OrbitRing moves them each
             frame). These Figma positions are the fallback without WebGL. */}
         <div data-orbit-node="discord" className="absolute left-0 top-0" style={{ transform: "translate(22.75rem, 35.5625rem)" }}>
-          <SocialNode platform="discord" label="Discord · copy" copyValue="paul_lauer" />
+          <SocialNode platform="discord" label="Discord·copy" copyValue="paul_lauer" />
         </div>
         <div data-orbit-node="github" className="absolute left-0 top-0" style={{ transform: "translate(60.75rem, 30.625rem)" }}>
           <SocialNode platform="github" label="GitHub ↗" href="https://github.com/Paul-Uni" />
@@ -87,7 +85,7 @@ export function Station05Contact() {
         {/* Core Gate: a point at the well's mouth (720, 610); the floor lines up with it, the throat drops below.
             Phones (Figma m05): centered on the beam at y 636 */}
         <div className="absolute left-[45rem] top-[38.125rem] max-md:left-1/2 max-md:top-[39.75rem]">
-          <CoreGate href="#login" />
+          <CoreGate href="/login" />
         </div>
 
         {/* Phones: the HUD's CORE REACHED moves here, centered above the footer (Figma m05) */}

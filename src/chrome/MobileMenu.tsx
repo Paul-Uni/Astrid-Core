@@ -102,7 +102,7 @@ export function MobileMenu() {
 
           <div className="mt-auto flex flex-col gap-4">
             <a
-              href="#login"
+              href="/login"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center border border-magenta-core/90 bg-magenta-core/12 p-3.5 font-pixel text-pixel-label text-dusk-pink"
             >
