@@ -1,7 +1,7 @@
 import { ButtonCore } from "@/ui/ButtonCore";
 import Link from "next/link";
-import { NAV_LINKS } from "@/tokens/stations";
 import { MobileMenu } from "./MobileMenu";
+import { NavLinks } from "./NavLinks";
 
 export function Nav() {
   return (
@@ -28,23 +28,13 @@ export function Nav() {
           ASTRID-CORE
         </Link>
 
-        <ul className="flex items-center gap-6 max-md:hidden">
-          {NAV_LINKS.map((link) => (
-            <li key={link.slug}>
-              <a
-                href={`#${link.slug}`}
-                className="font-mono text-mono-label uppercase text-ice/85 transition-opacity duration-[var(--dur-hover)] hover:text-vex-cyan hover:opacity-100"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-          <li>
-            <ButtonCore href="/login" variant="outline" compact>
-              Login
-            </ButtonCore>
-          </li>
-        </ul>
+        {/* Desktop: section links (fade out on the way to 01, NavLinks) + LOGIN (always) */}
+        <div className="flex items-center gap-6 max-md:hidden">
+          <NavLinks />
+          <ButtonCore href="/login" variant="outline" compact>
+            Login
+          </ButtonCore>
+        </div>
 
         {/* Phones (Figma Nav/Mobile): LOGIN + menu button; the links live in the menu */}
         <div className="hidden items-center gap-2.5 max-md:flex">

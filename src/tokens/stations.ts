@@ -18,11 +18,15 @@ export const STATIONS: readonly Station[] = [
   { id: 5, theta: 300, depth: 3700, slug: "contact",    label: "CONTACT",    figmaNodeId: "49:5916" },
 ] as const;
 
+
+/** Desktop nav section links (chrome/NavLinks). */
 export const NAV_LINKS = STATIONS.slice(1).map((s) => ({
   slug: s.slug,
-  label: s.label === "BACKGROUND" ? "Background" :
-         s.label === "CONTACT"    ? "Contact"    :
-         s.label === "PROJECTS"   ? "Projects"   :
-         s.label === "SKILLS"     ? "Skills"     :
-         s.label === "ABOUT"      ? "About"      : s.label,
+  label: s.label.charAt(0) + s.label.slice(1).toLowerCase(),
 }));
+
+/**
+ * Nav links fade out between 00 and 01: fully visible until `from`, gone at
+ * `to` (share of the scroll from 00 to 01), then inert.
+ */
+export const NAV_FADE = { from: 0.1, to: 0.7 } as const;

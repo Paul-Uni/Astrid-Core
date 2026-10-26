@@ -110,14 +110,14 @@ Glass panels carry 14px cyan corner brackets (2px stroke) on all four corners.
 
 | Component | Spec |
 | --- | --- |
-| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right (Button/Core outline, compact 8/14 padding: same fade-up hover as Enter Core; also in `Nav/Mobile`), on the 56px edge gutter across the full viewport width, 32px gap, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
+| Nav | Component `Nav`. Logo (14px rotated-square mark + `ASTRID-CORE` in Pixel/Label) left, links + LOGIN right (Button/Core outline, compact 8/14 padding: same fade-up hover as Enter Core; also in `Nav/Mobile`). The links (About · Skills · Projects · Background · Contact) belong to 00 Entry: scrolling from 00 into 01 fades them out with the scroll (`NAV_FADE`: visible until 10% of the way, gone at 70%), then they are inert; logo and LOGIN stay. From 01 on the orbit rail is the section navigation (Paul, 2026-10-26). Sits on the 56px edge gutter across the full viewport width, always visible. Fade from void (0.9) to transparent behind it, 150px tall |
 | Nav/Link | Mono/Label, ice at 0.85, padding 8/4 |
 | Nav/Box (Login) | Pixel/Label, dusk-pink text, 1px magenta border at 0.9, magenta fill at 0.12, padding 8/14 |
 | Button/Ghost | "View projects". Pixel/Label, vex-cyan text, 1px vex-cyan border (0.8), fill vex-cyan 0.06, padding 16/24 |
 | Button/Core | `ENTER CORE →`. Solid: Pixel/Label, ice text, `--cta-fill` (magenta-core mixed 80/20 with void, so ice text passes AA at ≈4.9:1; pure magenta-core gives 3.5:1), `--glow-magenta`, padding 16/24 |
 | Status chip | Mono/Data, 8px glowing cyan dot, fill cyan 0.08, border cyan 0.4, padding 8/12–14. Copy: `OPEN TO INTERNSHIPS & WORKING STUDENT ROLES · SOFTWARE, DATA, AI`; may wrap to two lines |
 | Glass panel | `--panel-*` tokens, padding 32, corner brackets. Powers on like a CRT the first time it scrolls into view (see Motion → Panel power-on) |
-| Orbit Rail | Right edge (56px gutter), items right-aligned, 22px gap. `Orbit Rail/Item` has `State=Active|Inactive`: 8px rotated square (active: filled cyan; inactive: outline at 0.7) + Mono/Data label. **Idle: all squares visible, only the current station's label shown** (e.g. `04 BACKGROUND ◆`), so content has room. Content panels keep ≥ 16px clear of that active label. Hovering the rail (fine pointers) or focusing it with the keyboard pops all labels in (opacity, 160ms ease-out) on a glass backdrop (void 0.72, cyan border 0.22, blur 18), so they stay readable over content; reference frame `Orbit Rail · hover state (reference)` in Components. Labels: 00 ENTRY · 01 ABOUT · 02 SKILLS · 03 PROJECTS · 04 BACKGROUND · 05 CONTACT. Each square needs an aria-label with its section name |
+| Orbit Rail | Right edge (56px gutter), items right-aligned, 22px gap. `Orbit Rail/Item` has `State=Active|Inactive`: 8px rotated square (active: filled cyan; inactive: outline at 0.7) + Mono/Data label. **Idle: all squares visible, only the current station's label shown** (e.g. `04 BACKGROUND ◆`), so content has room. 05 Contact is drawn in magenta (label dusk-pink, square magenta-core, filled with `--glow-magenta` when active): it holds the Core Gate, the way into the core. Content panels keep ≥ 16px clear of that active label. Hovering the rail (fine pointers) or focusing it with the keyboard pops all labels in (opacity, 160ms ease-out) on a glass backdrop (void 0.72, cyan border 0.22, blur 18), so they stay readable over content; reference frame `Orbit Rail · hover state (reference)` in Components. Labels: 00 ENTRY · 01 ABOUT · 02 SKILLS · 03 PROJECTS · 04 BACKGROUND · 05 CONTACT. Each square needs an aria-label with its section name |
 | Core Telemetry | Glass panel, Mono/Label title, key/value rows (key ice, value ice/cyan), width 210 content |
 | Photo frame (01 About) | Glass panel (padding 16) with corner brackets, image 268×335 (4:5). Placeholder: indigo fill, cyan scanlines at 0.07, `// IMAGE PENDING`. Caption in Mono/Data below. Replace the placeholder frame with an image fill |
 | Chip | Skill/stack tag. Mono/Data, ice text 0.95, 1px cyan border at 0.35, cyan fill at 0.06, padding 6/10, wraps in rows with 8px gaps |
@@ -238,7 +238,7 @@ In code, 05 plays once when the section enters the viewport, the rail motion on 
 ### Prototype (Figma "Camera ride" flow, starts at the hero)
 
 - ↓ / ↑ arrow keys: next / previous station. Click on the HUD line: next station.
-- Orbit rail squares, nav links and the logo jump to their station. View projects → 03, Enter Core (hero) → 05.
+- Orbit rail squares, nav links (while visible) and the logo jump to their station. View projects → 03, Contact me (hero, Button/Core outline, `↓`) → 05.
 - Transition: Smart Animate, 0.8s ease-in-out. All stream instances are named `Stream`, so the stream tweens between depths (the camera moving down).
 
 ## Mobile (390px, Figma page "02 Mobile")

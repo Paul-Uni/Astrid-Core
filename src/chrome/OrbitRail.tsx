@@ -5,8 +5,9 @@ import { useScrollStore } from "@/store/useScrollStore";
 
 /**
  * Right-edge orbit rail. All six diamonds are visible; only the active
- * station's label is shown by default. Hovering (fine pointers) or
- * focusing the rail pops the full label list on a glass backdrop.
+ * station's label is shown by default. Hovering (fine pointers) or focusing the rail pops
+ * the full label list on a glass backdrop. 05 Contact, where the Core Gate
+ * sits, is drawn in magenta (the way into the core).
  *
  * Each item is a single <a> wrapping both label and diamond, so clicking
  * anywhere on the row (including the label once it appears on hover)
@@ -34,6 +35,7 @@ export function OrbitRail() {
       <ol className="relative flex flex-col items-end gap-5 px-3 py-4">
         {STATIONS.map((station) => {
           const isActive = station.id === activeStation;
+          const isCore = station.id === 5;
           return (
             <li key={station.id}>
               <a
@@ -45,7 +47,8 @@ export function OrbitRail() {
                 {/* Label — visible only when active OR when the rail is hovered/focused */}
                 <span
                   className={
-                    "font-mono text-mono-data uppercase text-ice/90 transition-opacity duration-[160ms] max-md:hidden " +
+                    "font-mono text-mono-data uppercase transition-opacity duration-[160ms] motion-reduce:transition-none max-md:hidden " +
+                    (isCore ? "text-dusk-pink " : "text-ice/90 ") +
                     (isActive
                       ? "opacity-100"
                       : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100")
@@ -57,9 +60,13 @@ export function OrbitRail() {
                   aria-hidden
                   className={
                     "block size-2 rotate-45 border transition-colors duration-[var(--dur-hover)] " +
-                    (isActive
-                      ? "border-vex-cyan bg-vex-cyan shadow-[var(--glow-cyan)]"
-                      : "border-vex-cyan/70 bg-transparent")
+                    (isCore
+                      ? isActive
+                        ? "border-magenta-core bg-magenta-core shadow-[var(--glow-magenta)]"
+                        : "border-magenta-core/70 bg-transparent"
+                      : isActive
+                        ? "border-vex-cyan bg-vex-cyan shadow-[var(--glow-cyan)]"
+                        : "border-vex-cyan/70 bg-transparent")
                   }
                 />
               </a>
