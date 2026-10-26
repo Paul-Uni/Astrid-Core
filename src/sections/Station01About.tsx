@@ -41,7 +41,10 @@ export function Station01About() {
             className="font-sans text-body-m"
             style={{ color: "var(--color-ice)" }}
           >
-            {"I’m Paul, a computer science student at Ruhr University Bochum, now in my 5th semester. In a Scrum team project I built a C# AI backend and connected it to a React/TypeScript editor. Outside of lectures I keep building my own things: games in Unity and Python, and Astrid, an AI assistant that runs fully local on my own machine."}
+            {"I’m Paul, currently doing my computer science bachelor at Ruhr University Bochum. Outside of lectures I keep building things: games in Unity, small handy tools like a Twitch bot, and Astrid, an AI assistant that runs fully local on my own machine."}
+            <br />
+            <br />
+            {"I also play video games and consider myself a gym rat, so if I’m not at home or at uni, I’m probably at the gym :D"}
           </p>
 
           <hr

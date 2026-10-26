@@ -82,11 +82,11 @@ export function Station03Projects() {
             Ollama, with no cloud involved.
           </Body>
           <Bullet>
-            Own message architecture, system-prompt design and tool calling:
+            Own message architecture, memory management, system-prompt design and tool calling:
             the model requests, Python executes.
           </Bullet>
           <Bullet>
-            Modular skill system, so new abilities plug in as separate modules.
+            Skill system, so new abilities can be easily added.
           </Bullet>
           <Chips chips={["Python", "Ollama", "Local LLMs", "Tool calling"]} />
           <FooterLink tone="dusk" href="https://github.com/Paul-Uni/Astrid">

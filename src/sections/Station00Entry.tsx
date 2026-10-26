@@ -39,7 +39,7 @@ export function Station00Entry() {
           >
             {"Hi, I’m Paul."}
             <span className="mt-3 block font-pixel text-heading-m text-vex-cyan max-md:text-heading-s">
-              C#/.NET &amp; AI developer
+              Software &amp; AI developer
             </span>
           </h1>
 
@@ -49,7 +49,7 @@ export function Station00Entry() {
               style={{ color: "var(--color-ice)" }}
             >
               Computer science student at Ruhr University Bochum, focused on
-              C#/.NET development and Artificial Intelligence. I build apps, tools and my own data core:
+              C#/Python development and Artificial Intelligence. I build apps, tools and my own data core:
               Astrid.
             </p>
             <p
