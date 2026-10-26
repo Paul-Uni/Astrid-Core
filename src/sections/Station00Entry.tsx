@@ -43,26 +43,28 @@ export function Station00Entry() {
             </span>
           </h1>
 
-          <p
-            className="font-sans text-body-l max-w-[25rem] max-md:text-body-m"
-            style={{ color: "var(--color-ice)" }}
-          >
-            Computer science student at Ruhr University Bochum, focused on
-            C#/.NET development and Artificial Intelligence. I build apps, tools and my own data core:
-            Astrid.
-          </p>
-          <p
-            className="font-mono text-mono-data lowercase"
-            style={{ color: "var(--color-dusk-pink)" }}
-          >
-            ↕ scroll, and explore the panels below.
-          </p>
+          <div className="flex flex-col gap-3">
+            <p
+              className="font-sans text-body-l max-w-[25rem] max-md:text-body-m"
+              style={{ color: "var(--color-ice)" }}
+            >
+              Computer science student at Ruhr University Bochum, focused on
+              C#/.NET development and Artificial Intelligence. I build apps, tools and my own data core:
+              Astrid.
+            </p>
+            <p
+              className="font-mono text-mono-data lowercase"
+              style={{ color: "var(--color-dusk-pink)" }}
+            >
+              ↕ scroll, and explore the panels below.
+            </p>
+          </div>
 
           <div className="flex flex-wrap items-start gap-4 max-md:flex-col max-md:items-stretch max-md:gap-2.5">
             <ButtonGhost href="#projects" className="max-md:justify-center">View projects</ButtonGhost>
-            <ButtonCore href="/login" variant="outline" className="max-md:justify-center">
-              Enter Core
-              <span aria-hidden>→</span>
+            <ButtonCore href="#contact" variant="outline" className="max-md:justify-center">
+              Contact me
+              <span aria-hidden>↓</span>
             </ButtonCore>
           </div>
         </GlassPanel>

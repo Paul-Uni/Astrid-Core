@@ -103,7 +103,9 @@ export const STREAM = {
    * Dust and data specks: tiny points drifting in three depth layers
    * (`layers`: share of the `count`, size px, opacity, page-scroll
    * parallax `speed`, orbit pan `pan` px/deg, upward `drift` px/s), drawn
-   * just in front of the sky and silhouettes, behind every scene object.
+   * just in front of the sky, behind every scene object. Layers with
+   * `behind: 1` (the farthest, star-like ones) sit behind the skyline, so
+   * buildings hide them; the rest float in front of it.
    * Ice colored; a `glint.share` of them flash vex-cyan now and then
    * (`glint.rate` rad/s, `glint.sharp` = how brief the flash), brighter
    * within `glint.near` px of the beam. Calm zones dim them by `calm`; at
@@ -113,9 +115,9 @@ export const STREAM = {
   dust: {
     count: { desktop: 260, mobile: 120 },
     layers: [
-      { share: 0.5, size: 1.3, alpha: 0.34, speed: 0.12, pan: 1.5, drift: 2 },
-      { share: 0.32, size: 1.8, alpha: 0.48, speed: 0.28, pan: 3.5, drift: 4 },
-      { share: 0.18, size: 2.5, alpha: 0.6, speed: 0.5, pan: 6, drift: 7 },
+      { share: 0.5, size: 1.3, alpha: 0.34, speed: 0.12, pan: 1.5, drift: 2, behind: 1 },
+      { share: 0.32, size: 1.8, alpha: 0.48, speed: 0.28, pan: 3.5, drift: 4, behind: 0 },
+      { share: 0.18, size: 2.5, alpha: 0.6, speed: 0.5, pan: 6, drift: 7, behind: 0 },
     ],
     glint: { share: 0.18, rate: 0.7, sharp: 14, near: 220, boost: 2.2 },
     calm: 0.7,

@@ -171,6 +171,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
           vec3 body = mix(shade, uDusk, ${f(S.roof.lift)} * onRoof);
           float clip = 1.0 - smoothstep(ground - ${f(S.ground.fade)} * uScale, ground, px.y); // nothing below the floor's edge
           float cover = inside * clip;
+          solid = max(solid, cover);
           // Solid against farther layers: a building replaces whatever stands behind it,
           // and only lets the sky through (haze), so back rows never show through front ones.
           pc = mix(pc, body * a, cover);
@@ -185,7 +186,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
     .join("");
   return new ShaderMaterial({
     transparent: true,
-    depthWrite: false,
+    depthWrite: true, // only where a building stands (gl_FragDepth below), so far dust hides behind it
     depthTest: true,
     uniforms: {
       ...endUniforms,
@@ -226,6 +227,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
         vec3 shade = mix(uVoid, uIndigo, 0.35);
         vec3 pc = vec3(0.0);
         float alpha = 0.0;
+        float solid = 0.0; // how much of this pixel a building covers
         ${layers}
 
         // Haze glowing along the floor's edge, under the skyline.
@@ -239,6 +241,8 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
         vec3 col = pc / alpha;
         alpha *= (1.0 - ${f(S.calm)} * calmMask()) * (1.0 - ${f(S.endFade)} * uEnd);
         gl_FragColor = vec4(col, alpha);
+        // Buildings sit at the skyline depth; everywhere else stays at the far plane.
+        gl_FragDepth = solid > 0.5 ? gl_FragCoord.z : 1.0;
         #include <colorspace_fragment>
       }
     `,
@@ -794,7 +798,9 @@ export function createDustMaterial(colors: { ice: Color; cyan: Color }) {
         vGlint = glint * mix(0.6, 1.0, nearBeam);
         vAlpha = dot(layer, ${v3((l) => l.alpha)}) * (1.0 + vGlint * ${f(D.glint.boost)});
         gl_PointSize = dot(layer, ${v3((l) => l.size)}) * uScale * uDpr * (1.0 + vGlint);
-        gl_Position = vec4(p.x / uResolution.x * 2.0 - 1.0, 1.0 - p.y / uResolution.y * 2.0, 0.9997, 1.0);
+        // Layers marked "behind" sit past the skyline (0.9998), so buildings hide them.
+        float z = mix(0.9997, 0.99995, dot(layer, ${v3((l) => l.behind)}));
+        gl_Position = vec4(p.x / uResolution.x * 2.0 - 1.0, 1.0 - p.y / uResolution.y * 2.0, z, 1.0);
       }
     `,
     fragmentShader: /* glsl */ `
