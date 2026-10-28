@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Pixelify_Sans, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ChromaticFilters } from "./ChromaticFilters";
+import { NO_BLUR_KEY } from "@/scene/gpuTier";
 
 const pixelify = Pixelify_Sans({
   subsets: ["latin"],
@@ -50,6 +51,9 @@ export const viewport: Viewport = {
   // Native pinch/CTRL zoom must work (contract from the plan).
 };
 
+// Integrated GPU seen on an earlier visit (scene/gpuTier.ts): no panel blur from the first paint.
+const NO_BLUR = `try{if(localStorage.getItem(${JSON.stringify(NO_BLUR_KEY)}))document.documentElement.setAttribute("data-no-blur","")}catch(e){}`;
+
 const POWER_ARM = `(function(){var d=document.documentElement;if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;d.dataset.power="armed";setTimeout(function(){if(!d.dataset.powerReady)delete d.dataset.power},4000)})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -63,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Arms the panel power-on before first paint, so panels don't flash
             visible and then switch off. Disarms itself if PanelPowerOn never
             starts (JS failed), so content is never left hidden. */}
-        <script dangerouslySetInnerHTML={{ __html: POWER_ARM }} />
+        <script dangerouslySetInnerHTML={{ __html: NO_BLUR + POWER_ARM }} />
       </head>
       <body>
         <ChromaticFilters />

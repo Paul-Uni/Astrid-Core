@@ -163,15 +163,17 @@
   -webkit-backdrop-filter: var(--panel-blur);
 }
 
-/* Weak GPU (AdaptiveEffects in scene/Effects.tsx): no backdrop blur over the live canvas, the panel fill alone carries the glass. */
-html[data-lean] {
-  --panel-blur: none;
-}
-
-/* TEMP perf test (Paul, Surface): every backdrop blur off. Remove once the test is done. */
-*,
-*::before,
-*::after {
+/*
+ * Weak GPU (AdaptiveEffects in scene/Effects.tsx): no backdrop blur over the live canvas, the panel
+ * fill alone carries the glass. data-no-blur: integrated GPU (also set by the head script on repeat
+ * visits); data-lean: lowest quality step. Covers every backdrop blur (panels, light panels, rail, login field).
+ */
+html[data-no-blur] *,
+html[data-no-blur] *::before,
+html[data-no-blur] *::after,
+html[data-lean] *,
+html[data-lean] *::before,
+html[data-lean] *::after {
   backdrop-filter: none !important;
 }
 

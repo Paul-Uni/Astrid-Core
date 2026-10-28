@@ -7,6 +7,7 @@ import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import type { VignetteEffect } from "postprocessing";
 import { endUniforms } from "./endBlend";
 import { STREAM } from "./streamSpec";
+import { NO_BLUR_KEY, isIntegratedGpu } from "./gpuTier";
 
 /**
  * Below this share of the display's refresh rate (sustained) the scene counts as too heavy for this GPU.
@@ -15,8 +16,6 @@ import { STREAM } from "./streamSpec";
  */
 const MIN_FPS_SHARE = 0.8;
 const MAX_REFRESH = 120;
-/** Integrated laptop GPUs start one step down, instead of stuttering through the first seconds and then visibly switching. */
-const INTEGRATED_GPU = /intel|iris|uhd graphics|hd graphics/i;
 
 /**
  * Real bloom pass (Figma fakes it with a blurred duplicate). Only bright parts glow: light, beam core, ring tops.
@@ -51,20 +50,29 @@ const LAST_STEP = STEPS.length - 1;
 const MONITOR_DELAY = 3000;
 
 /**
- * Effects plus the quality steps above. Skipped under reduced motion: the loop renders on demand there,
- * so the frame rate says nothing.
+ * Effects plus the quality steps above. The frame-rate check is skipped under reduced motion: the loop
+ * renders on demand there, so the frame rate says nothing.
+ *
+ * Integrated GPUs start one step down, instead of stuttering through the first seconds and then visibly
+ * switching, and never get the panel blur (`html[data-no-blur]`, globals.css). That choice is remembered
+ * (NO_BLUR_KEY) so the next visit has it from the first paint.
  */
-function startStep(gl: WebGLRenderingContext | WebGL2RenderingContext) {
-  const info = gl.getExtension("WEBGL_debug_renderer_info");
-  const renderer = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? "");
-  return INTEGRATED_GPU.test(renderer) ? 1 : 0;
-}
-
 export function AdaptiveEffects({ still }: { still: boolean }) {
   const context = useThree((s) => s.gl).getContext();
-  const [step, setStep] = useState(() => startStep(context));
+  const [integrated] = useState(() => isIntegratedGpu(context));
+  const [step, setStep] = useState(integrated ? 1 : 0);
   const [watching, setWatching] = useState(false);
   const setDpr = useThree((s) => s.setDpr);
+
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-no-blur", integrated);
+    try {
+      if (integrated) localStorage.setItem(NO_BLUR_KEY, "1");
+      else localStorage.removeItem(NO_BLUR_KEY);
+    } catch {
+      // Storage blocked: only the next visit's first paint misses it.
+    }
+  }, [integrated]);
 
   useEffect(() => {
     const id = window.setTimeout(() => setWatching(true), MONITOR_DELAY);
