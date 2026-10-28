@@ -97,7 +97,7 @@ export function Station03Projects() {
             ends at 1248, ≥16px clear of the active rail label (DESIGN.md). */}
         <GlassPanel
           className="flex w-[27.5rem] flex-col gap-3 p-6"
-          style={{ position: "absolute", left: "50.5rem", top: "26rem" }}
+          style={{ position: "absolute", left: "49.6875rem", top: "26rem" }}
           m={{ x: 26, w: 334, p: 22 }}
           aria-labelledby="cam-h3"
         >

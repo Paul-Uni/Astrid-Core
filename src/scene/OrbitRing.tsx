@@ -71,6 +71,12 @@ export function OrbitRing({ palette, still, mobile }: { palette: Palette; still:
 
   const points = useMemo(() => NODE_IDS.map((id) => ringPoint(angles[id], radius, new Vector3())), [angles, radius]);
   const screen = useMemo(() => new Vector3(), []);
+  // Closest a node gets to the screen edge (--gutter-mobile), so a wide label like DISCORD·COPY
+  // never touches it. Read once: it's in rem, so it follows the root font size at mount.
+  const edge = useMemo(() => {
+    const root = getComputedStyle(document.documentElement);
+    return parseFloat(root.getPropertyValue("--gutter-mobile")) * parseFloat(root.fontSize) || 0;
+  }, []);
   useFrame(({ camera, size }) => {
     if (still) return;
     // CameraRig moved the camera this frame; its matrices refresh only at render time.
@@ -87,10 +93,10 @@ export function OrbitRing({ palette, still, mobile }: { palette: Palette; still:
       screen.copy(points[i]!).project(camera);
       const w = el.offsetWidth;
       const h = el.offsetHeight;
-      // Diamond center (top 32px of the node) on the ring point; the whole node stays on screen.
+      // Diamond center (top 32px of the node) on the ring point; the whole node stays `edge` px inside the screen.
       const cx = (screen.x * 0.5 + 0.5) * size.width;
       const cy = (0.5 - screen.y * 0.5) * size.height;
-      const x = Math.min(size.width - w, Math.max(0, cx - w / 2));
+      const x = Math.min(size.width - w - edge, Math.max(edge, cx - w / 2));
       const y = cy - 32;
       // A node under the panel fades out over its last FADE px of overlap.
       let fade = 1;

@@ -28,7 +28,11 @@ export function Station00Entry() {
           aria-labelledby="entry-h1"
           data-power-style="boot"
         >
-          <StatusChip>Open to internships & working student roles · software, data, AI</StatusChip>
+          <StatusChip>
+            Open to internships & working student roles
+            {/* Phones: the fields would wrap the chip to a third line; the subtitle below names them anyway. */}
+            <span className="max-md:hidden"> · software, data, AI</span>
+          </StatusChip>
 
           <SectionLabel index={0} name="Entry Point" />
 

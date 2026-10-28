@@ -13,6 +13,9 @@
   /* Grid (rem) */
   --gutter-content: 7.5rem;      /* 120 */
   --gutter-edge: 3.5rem;          /* 56  */
+  --hud-covered: 0.12;            /* HUD opacity while a panel scrolls through it */
+  --rail-label-idle: 0.4;        /* orbit rail: opacity of the labels that aren't the current station */
+  --gutter-mobile: 1.25rem;       /* 20 — phone content gutter; also the closest a social node gets to the screen edge */
   --beam-x: 50%;                  /* stream center */
   --beam-radius: 2.75rem;         /* 44 — half of 88px beam */
 

@@ -37,7 +37,7 @@ const CLUSTERS: readonly Cluster[] = [
     index: "03",
     title: "Tools & methods",
     chips: ["Git", "Docker", "MySQL", "SQLite", "RoadRunner", "OOP", "Scrum"],
-    pos: { left: "56.375rem", top: "34.125rem" },
+    pos: { left: "56.125rem", top: "34.125rem" },
     width: "22.5rem",
     m: { x: 24, w: 336, p: 20 },
   },

@@ -4,8 +4,8 @@ import { STATIONS } from "@/tokens/stations";
 import { useScrollStore } from "@/store/useScrollStore";
 
 /**
- * Right-edge orbit rail. All six diamonds are visible; only the active
- * station's label is shown by default. Hovering (fine pointers) or focusing the rail pops
+ * Right-edge orbit rail. All six diamonds and labels are visible: the active
+ * label full, the others faint (--rail-label-idle). Hovering (fine pointers) or focusing the rail pops
  * the full label list on a glass backdrop. 05 Contact, where the Core Gate
  * sits, is drawn in magenta (the way into the core).
  *
@@ -44,14 +44,14 @@ export function OrbitRail() {
                 aria-current={isActive ? "location" : undefined}
                 className="flex items-center gap-3 py-0.5 max-md:-m-2.5 max-md:p-2.5"
               >
-                {/* Label — visible only when active OR when the rail is hovered/focused */}
+                {/* Label: the active one full, the others faint so the stations read without hovering; all full on hover/focus */}
                 <span
                   className={
                     "font-mono text-mono-data uppercase transition-opacity duration-[160ms] motion-reduce:transition-none max-md:hidden " +
                     (isCore ? "text-dusk-pink " : "text-ice/90 ") +
                     (isActive
                       ? "opacity-100"
-                      : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100")
+                      : "opacity-[var(--rail-label-idle)] group-hover:opacity-100 group-focus-within:opacity-100")
                   }
                 >
                   {`0${station.id} ${station.label}`}

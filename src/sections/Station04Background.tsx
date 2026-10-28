@@ -10,6 +10,8 @@ type Entry = {
   title: string;
   org: string;
   body?: string;
+  /** In-page link instead of a body, for entries told in full elsewhere (CAM lives in 03 Projects). */
+  link?: { href: string; label: string };
   /** Figma pos within the 90rem container (rem). */
   pos: { left: string; top: string };
   /** Mobile placement (Figma m04). */
@@ -39,7 +41,7 @@ const ENTRIES: readonly Entry[] = [
     dateRange: "2025",
     title: "Team project: CAM",
     org: "Carbyte / SE Labs · Scrum",
-    body: "AI backend in C#, flowchart editor in React/TypeScript.",
+    link: { href: "#projects", label: "↳ full story in 03 projects" },
     pos: { left: "51.8125rem", top: "24.75rem" },
     m: { x: 34, w: 318, p: 20 },
   },
@@ -124,6 +126,15 @@ export function Station04Background() {
               >
                 {e.body}
               </p>
+            )}
+            {e.link && (
+              <a
+                href={e.link.href}
+                className="font-mono text-mono-data lowercase transition-opacity duration-[var(--dur-hover)] hover:opacity-80"
+                style={{ color: "var(--color-vex-cyan)" }}
+              >
+                {e.link.label}
+              </a>
             )}
           </GlassPanel>
         ))}

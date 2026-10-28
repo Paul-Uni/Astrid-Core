@@ -60,7 +60,7 @@ export function Station01About() {
         </GlassPanel>
 
         {/* Photo frame — Figma pos (958, 232); on phones it comes first */}
-        <div className="absolute left-[59.875rem] top-[14.5rem]" {...mobilePlacement({ x: 40, order: -1 })}>
+        <div className="absolute left-[58.5rem] top-[14.5rem]" {...mobilePlacement({ x: 40, order: -1 })}>
           <PhotoFrame tether />
         </div>
       </div>
