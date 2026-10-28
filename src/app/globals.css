@@ -168,6 +168,13 @@ html[data-lean] {
   --panel-blur: none;
 }
 
+/* TEMP perf test (Paul, Surface): every backdrop blur off. Remove once the test is done. */
+*,
+*::before,
+*::after {
+  backdrop-filter: none !important;
+}
+
 /* Sky gradient per DESIGN.md: void → indigo (45%) → sky-mid (72%) → void. */
 @utility sky-gradient {
   background:
