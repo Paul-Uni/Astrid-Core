@@ -50,7 +50,12 @@ export function CameraRig({ scale, still }: { scale: number; still: boolean }) {
       Math.cos(theta) * flat,
     );
     cam.lookAt(0, centerY, 0);
-  });
+    // Others project world points with this camera in their own useFrame (Sky's well glow, Silhouettes).
+    // three only refreshes the view matrix at render time; without this they'd use last frame's
+    // camera, and on a slow frame during fast scrolling the glow trails behind the lock.
+    cam.updateMatrixWorld();
+    // Negative priority: runs before every other useFrame, without taking over rendering.
+  }, -1);
 
   return null;
 }

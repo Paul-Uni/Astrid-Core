@@ -90,15 +90,22 @@ export function useScrollProgress() {
       schedule();
     };
 
+    // Scroll: write right away. The browser fires scroll before the frame's rAF callbacks, so the
+    // scene (its own rAF, which runs before one scheduled here) reads this frame's angle, not the last one.
+    const onScroll = () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      update();
+    };
+
     remeasure();
-    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", remeasure);
     const resizeObserver = new ResizeObserver(remeasure);
     resizeObserver.observe(document.body);
     document.fonts?.ready.then(remeasure);
 
     return () => {
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", remeasure);
       resizeObserver.disconnect();
       if (raf) window.cancelAnimationFrame(raf);
