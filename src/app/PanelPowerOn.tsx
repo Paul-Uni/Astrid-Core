@@ -4,27 +4,16 @@ import { useEffect } from "react";
 
 /** Gap between panels that come into view together (ms). */
 const STAGGER = 60;
-/** Boot panels (station 00) wait for the stage and fonts, at most this long (ms). */
-const BOOT_WAIT = 1500;
-/** Extra pause after the stage is ready, so its own fade-in is done (ms). */
-const BOOT_SETTLE = 200;
+/** Boot panels (station 00) wait for the fonts, at most this long (ms). */
+const BOOT_WAIT = 800;
 
-/** Resolves once the WebGL stage reports ready and the fonts are loaded, or after BOOT_WAIT. */
+/**
+ * Resolves once the fonts are loaded, or after BOOT_WAIT. It does not wait for the
+ * WebGL stage: the stage mounts after the boot (StageLoader), so its first frame
+ * never holds the content back.
+ */
 function bootReady() {
-  const stage = new Promise<void>((resolve) => {
-    if (document.querySelector("[data-stage=ready]")) return resolve();
-    const mo = new MutationObserver(() => {
-      if (document.querySelector("[data-stage=ready]")) {
-        mo.disconnect();
-        resolve();
-      }
-    });
-    mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["data-stage"] });
-  });
-  const ready = Promise.all([stage, document.fonts.ready]).then(
-    () => new Promise<void>((r) => setTimeout(r, BOOT_SETTLE)),
-  );
-  return Promise.race([ready, new Promise<void>((r) => setTimeout(r, BOOT_WAIT))]);
+  return Promise.race([document.fonts.ready, new Promise<void>((r) => setTimeout(r, BOOT_WAIT))]);
 }
 
 /**
@@ -32,7 +21,7 @@ function bootReady() {
  * view by setting `data-power-on`; the CRT animation itself is CSS
  * (globals.css, "Panel power-on"). Panels entering together turn on top to
  * bottom, left to right, STAGGER ms apart. Station 00 panels (boot style)
- * wait for the stage and fonts first (bootReady). Does nothing unless the head
+ * wait for the fonts first (bootReady). Does nothing unless the head
  * script armed it (<html data-power>), so reduced motion skips it entirely.
  */
 export function PanelPowerOn() {

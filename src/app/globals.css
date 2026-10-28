@@ -163,6 +163,11 @@
   -webkit-backdrop-filter: var(--panel-blur);
 }
 
+/* Weak GPU (AdaptiveEffects in scene/Effects.tsx): no backdrop blur over the live canvas, the panel fill alone carries the glass. */
+html[data-lean] {
+  --panel-blur: none;
+}
+
 /* Sky gradient per DESIGN.md: void → indigo (45%) → sky-mid (72%) → void. */
 @utility sky-gradient {
   background:

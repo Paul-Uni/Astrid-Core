@@ -1,4 +1,4 @@
-import { BufferGeometry, Float32BufferAttribute, type Color } from "three";
+import { BufferAttribute, BufferGeometry, type Color } from "three";
 import { pick, range, seededRandom, type Rng } from "./random";
 import { RING_CLUSTERS, toWorld, toWorldY } from "./streamSpec";
 
@@ -22,19 +22,48 @@ const TURN_PERIOD: Record<RingType, number> = { 1: 40, 2: 55, 3: 70, 4: 60, 5: 9
 
 type RingColors = { cyan: Color; ice: Color; magenta: Color; steel: Color; indigoRaised: Color };
 
+/**
+ * Vertex data in typed arrays that double when full. This runs for every ring vertex while the
+ * stage mounts, on the main thread: plain number[] growth and temp arrays made it a long task.
+ */
 class Builder {
-  pos: number[] = [];
-  nrm: number[] = [];
-  col: number[] = [];
-  alpha: number[] = [];
-  spin: number[] = [];
+  private n = 0;
+  private cap = 4096;
+  private pos = new Float32Array(this.cap * 3);
+  private nrm = new Float32Array(this.cap * 3);
+  private col = new Float32Array(this.cap * 3);
+  private alpha = new Float32Array(this.cap);
+  private spin = new Float32Array(this.cap);
+
+  private grow() {
+    this.cap *= 2;
+    const bigger = (a: Float32Array, size: number) => {
+      const b = new Float32Array(this.cap * size);
+      b.set(a);
+      return b;
+    };
+    this.pos = bigger(this.pos, 3);
+    this.nrm = bigger(this.nrm, 3);
+    this.col = bigger(this.col, 3);
+    this.alpha = bigger(this.alpha, 1);
+    this.spin = bigger(this.spin, 1);
+  }
 
   private push(p: [number, number, number], n: [number, number, number], c: Color, a: number, s: number) {
-    this.pos.push(...p);
-    this.nrm.push(...n);
-    this.col.push(c.r, c.g, c.b);
-    this.alpha.push(a);
-    this.spin.push(s);
+    if (this.n === this.cap) this.grow();
+    const i = this.n++;
+    const i3 = i * 3;
+    this.pos[i3] = p[0];
+    this.pos[i3 + 1] = p[1];
+    this.pos[i3 + 2] = p[2];
+    this.nrm[i3] = n[0];
+    this.nrm[i3 + 1] = n[1];
+    this.nrm[i3 + 2] = n[2];
+    this.col[i3] = c.r;
+    this.col[i3 + 1] = c.g;
+    this.col[i3 + 2] = c.b;
+    this.alpha[i] = a;
+    this.spin[i] = s;
   }
 
   quad(
@@ -42,7 +71,12 @@ class Builder {
     p2: [number, number, number], p3: [number, number, number],
     n: [number, number, number], c: Color, a: number, s: number,
   ) {
-    for (const p of [p0, p1, p2, p0, p2, p3]) this.push(p, n, c, a, s);
+    this.push(p0, n, c, a, s);
+    this.push(p1, n, c, a, s);
+    this.push(p2, n, c, a, s);
+    this.push(p0, n, c, a, s);
+    this.push(p2, n, c, a, s);
+    this.push(p3, n, c, a, s);
   }
 
   segment(p0: [number, number, number], p1: [number, number, number], c: Color, a: number, s: number) {
@@ -52,11 +86,12 @@ class Builder {
 
   geometry() {
     const g = new BufferGeometry();
-    g.setAttribute("position", new Float32BufferAttribute(this.pos, 3));
-    g.setAttribute("normal", new Float32BufferAttribute(this.nrm, 3));
-    g.setAttribute("aColor", new Float32BufferAttribute(this.col, 3));
-    g.setAttribute("aAlpha", new Float32BufferAttribute(this.alpha, 1));
-    g.setAttribute("aSpin", new Float32BufferAttribute(this.spin, 1));
+    const n = this.n;
+    g.setAttribute("position", new BufferAttribute(this.pos.slice(0, n * 3), 3));
+    g.setAttribute("normal", new BufferAttribute(this.nrm.slice(0, n * 3), 3));
+    g.setAttribute("aColor", new BufferAttribute(this.col.slice(0, n * 3), 3));
+    g.setAttribute("aAlpha", new BufferAttribute(this.alpha.slice(0, n), 1));
+    g.setAttribute("aSpin", new BufferAttribute(this.spin.slice(0, n), 1));
     g.computeBoundingSphere();
     return g;
   }

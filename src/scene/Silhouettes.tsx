@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { type Mesh, type ShaderMaterial, type Vector2, Vector3, type Vector4 } from "three";
-import { createSilhouetteMaterial } from "./materials";
+import { columns, createSilhouetteMaterial } from "./materials";
 import type { Palette } from "./palette";
 import { STREAM, toWorld, toWorldY } from "./streamSpec";
 import { useScrollStore } from "@/store/useScrollStore";
@@ -12,6 +12,8 @@ const S = STREAM.silhouettes;
 const DEG = Math.PI / 180;
 const FLOOR_Y = toWorldY(STREAM.emitter.cy + STREAM.emitter.well.drop);
 const R = toWorld(STREAM.emitter.floor.radius);
+/** The floor haze falls off as exp(-d / hazePx); past this many hazePx it is below the shader's 0.002 cutoff. */
+const HAZE_REACH = 6;
 const center = new Vector3();
 const far = new Vector3();
 const side = new Vector3();
@@ -66,6 +68,17 @@ export function Silhouettes({ palette, scale, still, mobile }: { palette: Palett
     const rim = uniforms.uRim!.value as Vector4;
     if (still || far.z > 1) rim.set(0, 1e5, 1, 0);
     else rim.set(center.x, center.y, Math.max(1, Math.abs(side.x - center.x)), center.y - far.y);
+
+    // Draw only the strip where something can show: below the tallest roof of any layer
+    // (same bound as the shader's layers) and below the floor edge's haze. Above it is plain sky.
+    const groundTop = rim.y - rim.w;
+    let top = groundTop - S.ground.hazePx * HAZE_REACH * scale;
+    for (const l of S.layers) {
+      const horizon = (l.horizon[0] + (l.horizon[1] - l.horizon[0]) * (still ? 0 : progress)) * size.height;
+      const roofBand = ((360 * l.pan) / columns(l)) * scale * l.group * uniforms.uRoof!.value;
+      top = Math.min(top, Math.min(horizon, groundTop) - (l.maxH + l.towerH) * scale - roofBand - (S.rimPx + 1));
+    }
+    uniforms.uTop!.value = 1 - 2 * Math.min(Math.max(top, 0), size.height) / size.height;
   });
 
   return (

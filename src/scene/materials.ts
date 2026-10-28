@@ -204,10 +204,12 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
       uSink: { value: 0 },
       uRoof: { value: 0 },
       uRim: { value: new Vector4(0, 1e5, 1, 0) },
+      uTop: { value: 1 },
     },
     vertexShader: /* glsl */ `
+      uniform float uTop; // clip y of the strip's top edge: nothing is drawn above it
       void main() {
-        gl_Position = vec4(position.xy, 0.9998, 1.0);
+        gl_Position = vec4(position.x, position.y > 0.0 ? uTop : -1.0, 0.9998, 1.0);
       }
     `,
     fragmentShader: /* glsl */ `
@@ -250,7 +252,7 @@ export function createSilhouetteMaterial(colors: { void: Color; indigo: Color; d
 }
 
 /** Whole columns per orbit, and a whole number of buildings, so a silhouette row wraps seamlessly. */
-function columns(l: (typeof STREAM.silhouettes.layers)[number]) {
+export function columns(l: (typeof STREAM.silhouettes.layers)[number]) {
   return Math.max(l.group, Math.round((360 * l.pan) / l.col / l.group) * l.group);
 }
 

@@ -44,7 +44,7 @@ export function Station03Projects() {
           m={{ x: 16, w: 340, p: 22, order: 1 }}
           tether
         >
-          <MetaLine>{"// NODE 03 · LIVE · YOU ARE HERE"}</MetaLine>
+          <MetaLine>{"// NODE 01 · LIVE · YOU ARE HERE"}</MetaLine>
           <h3
             className="font-pixel text-heading-m max-md:text-heading-s"
             style={{ color: "var(--color-ice)" }}
@@ -52,8 +52,7 @@ export function Station03Projects() {
             astridcore.dev
           </h3>
           <Body>
-            This site: a scroll-driven data stream with a login-gated private
-            side.
+            This site: a scroll-driven little adventure through my CV with a private backend.
           </Body>
           <Chips chips={["Figma", "Next.js", "Three.js", "Cloudflare","Claude Code"]} />
           <FooterLink tone="dusk" href="https://github.com/Paul-Uni/Astrid-Core">
@@ -69,7 +68,7 @@ export function Station03Projects() {
           tether
           aria-labelledby="astrid-h3"
         >
-          <MetaLine>{"// NODE 01 · IN DEVELOPMENT · SINCE 2026"}</MetaLine>
+          <MetaLine>{"// NODE 02 · IN DEVELOPMENT · SINCE 2026"}</MetaLine>
           <h3
             id="astrid-h3"
             className="font-pixel text-display-l max-md:text-display-m"
@@ -102,7 +101,7 @@ export function Station03Projects() {
           m={{ x: 26, w: 334, p: 22 }}
           aria-labelledby="cam-h3"
         >
-          <MetaLine>{"// NODE 02 · TEAM PROJECT · 2025"}</MetaLine>
+          <MetaLine>{"// NODE 03 · TEAM PROJECT · 2025"}</MetaLine>
           <div className="flex w-full flex-col gap-1">
             <h3
               id="cam-h3"

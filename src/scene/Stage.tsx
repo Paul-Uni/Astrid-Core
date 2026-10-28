@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { readPalette } from "./palette";
@@ -18,7 +18,8 @@ import { EmitterFloor } from "./EmitterFloor";
 import { CoreLock } from "./CoreLock";
 import { OrbitRing } from "./OrbitRing";
 import { CoreHeartbeat } from "./CoreHeartbeat";
-import { Effects } from "./Effects";
+import { AdaptiveEffects } from "./Effects";
+import { Warmup } from "./Warmup";
 import { CalmZones } from "./calmZones";
 
 /** Time used for the single still frame under reduced motion (particles spread out, not bunched at t = 0). */
@@ -38,7 +39,9 @@ export default function Stage() {
   const isMobile = useIsMobile();
   const scale = isMobile ? MOBILE_SCALE : 1;
   const palette = useMemo(() => readPalette(), []);
+  // Ready once every shader is compiled (Warmup). Until then nothing renders and the canvas stays hidden.
   const [ready, setReady] = useState(false);
+  const onWarm = useCallback(() => setReady(true), []);
 
   return (
     <div
@@ -52,11 +55,10 @@ export default function Stage() {
       <Canvas
         flat
         dpr={[1, 1.75]}
-        frameloop={still ? "demand" : "always"}
+        frameloop={!ready ? "never" : still ? "demand" : "always"}
         camera={{ fov: CAMERA_FOV, near: 1, far: 600, position: [0, 0, 60] }}
-        gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+        gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         fallback={null}
-        onCreated={() => setReady(true)}
       >
         <CoreHeartbeat still={still} />
         <CalmZones />
@@ -76,7 +78,8 @@ export default function Stage() {
           stillTime={STILL_TIME}
         />
         <Beam palette={palette} still={still} stillTime={STILL_TIME} />
-        <Effects />
+        <AdaptiveEffects still={still} />
+        <Warmup onDone={onWarm} />
       </Canvas>
     </div>
   );

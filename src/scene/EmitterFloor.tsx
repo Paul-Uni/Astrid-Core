@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { BufferGeometry, Float32BufferAttribute, type Mesh, type ShaderMaterial } from "three";
+import { BufferAttribute, BufferGeometry, type Mesh, type ShaderMaterial } from "three";
 import { createFloorMaterial } from "./materials";
 import { pulseUniforms } from "./corePulse";
 import type { Palette } from "./palette";
@@ -18,25 +18,39 @@ const SEGMENTS = 256;
  * coarser out on the flat part, where the sheet barely bends.
  */
 function polarSheet(radius: number) {
-  const pos: number[] = [0, 0, 0];
+  // Typed arrays sized up front: ~60k vertices, built on the main thread while the stage mounts.
+  const pos = new Float32Array((1 + RINGS * SEGMENTS) * 3);
+  let p = 3;
   for (let i = 1; i <= RINGS; i++) {
     const r = radius * (i / RINGS) ** 2.4;
     for (let j = 0; j < SEGMENTS; j++) {
       const a = (j / SEGMENTS) * Math.PI * 2;
-      pos.push(Math.cos(a) * r, Math.sin(a) * r, 0);
+      pos[p++] = Math.cos(a) * r;
+      pos[p++] = Math.sin(a) * r;
+      p++;
     }
   }
-  const index: number[] = [];
+  const index = new Uint32Array(SEGMENTS * 3 + (RINGS - 1) * SEGMENTS * 6);
+  let k = 0;
   const v = (i: number, j: number) => 1 + (i - 1) * SEGMENTS + (j % SEGMENTS);
-  for (let j = 0; j < SEGMENTS; j++) index.push(0, v(1, j), v(1, j + 1));
+  for (let j = 0; j < SEGMENTS; j++) {
+    index[k++] = 0;
+    index[k++] = v(1, j);
+    index[k++] = v(1, j + 1);
+  }
   for (let i = 1; i < RINGS; i++) {
     for (let j = 0; j < SEGMENTS; j++) {
-      index.push(v(i, j), v(i + 1, j), v(i + 1, j + 1), v(i, j), v(i + 1, j + 1), v(i, j + 1));
+      index[k++] = v(i, j);
+      index[k++] = v(i + 1, j);
+      index[k++] = v(i + 1, j + 1);
+      index[k++] = v(i, j);
+      index[k++] = v(i + 1, j + 1);
+      index[k++] = v(i, j + 1);
     }
   }
   const g = new BufferGeometry();
-  g.setAttribute("position", new Float32BufferAttribute(pos, 3));
-  g.setIndex(index);
+  g.setAttribute("position", new BufferAttribute(pos, 3));
+  g.setIndex(new BufferAttribute(index, 1));
   return g;
 }
 

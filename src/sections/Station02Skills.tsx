@@ -71,7 +71,7 @@ export function Station02Skills() {
             className="font-sans text-body-m"
             style={{ color: "var(--color-ice)" }}
           >
-            What I work with, sorted by what I use it for. Each cluster is a node on the stream.
+            What I work with, sorted by what I use it for.
           </p>
         </GlassPanel>
 

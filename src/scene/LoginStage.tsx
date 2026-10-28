@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import type { PerspectiveCamera } from "three";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
@@ -11,7 +11,8 @@ import { Sky } from "./Sky";
 import { Dust } from "./Dust";
 import { Fragments, type CubeField } from "./Fragments";
 import { CalmZones } from "./calmZones";
-import { Effects } from "./Effects";
+import { AdaptiveEffects } from "./Effects";
+import { Warmup } from "./Warmup";
 
 /** Same lens as the main stage, so the cubes read at the same size. */
 const CAMERA_FOV = 8;
@@ -45,7 +46,9 @@ export default function LoginStage() {
   const isMobile = useIsMobile();
   const scale = isMobile ? MOBILE_SCALE : 1;
   const palette = useMemo(() => readPalette(), []);
+  // Ready once every shader is compiled (Warmup). Until then nothing renders and the canvas stays hidden.
   const [ready, setReady] = useState(false);
+  const onWarm = useCallback(() => setReady(true), []);
 
   return (
     <div
@@ -58,11 +61,10 @@ export default function LoginStage() {
       <Canvas
         flat
         dpr={[1, 1.75]}
-        frameloop={still ? "demand" : "always"}
+        frameloop={!ready ? "never" : still ? "demand" : "always"}
         camera={{ fov: CAMERA_FOV, near: 1, far: 2000, position: [0, 0, 60] }}
-        gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+        gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         fallback={null}
-        onCreated={() => setReady(true)}
       >
         <CalmZones />
         <LoginCamera scale={scale} />
@@ -76,7 +78,8 @@ export default function LoginStage() {
           field={CUBE_FIELD}
           calm={1}
         />
-        <Effects />
+        <AdaptiveEffects still={still} />
+        <Warmup onDone={onWarm} />
       </Canvas>
     </div>
   );

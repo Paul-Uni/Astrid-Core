@@ -78,7 +78,7 @@ export function Station05Contact() {
           <SocialNode
             platform="linkedin"
             label="LinkedIn ↗"
-            href="https://www.linkedin.com/in/paul-onyeikedi-2b4b44265/"
+            href="https://www.linkedin.com/in/paul-onyeikedi-4520a12a0/"
           />
         </div>
 
